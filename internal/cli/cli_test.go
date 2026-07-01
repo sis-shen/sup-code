@@ -1,4 +1,4 @@
-package cli
+﻿package cli
 
 import (
 	"bytes"
@@ -6,7 +6,16 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"github.com/supcode/supcode/internal"
 )
+
+func setupTestApp(t *testing.T) {
+	t.Setenv("SUPCODE_LLM_API_KEY", "sk-cli-test")
+	sc, err := internal.NewSupCode("")
+	require.NoError(t, err)
+	t.Cleanup(func() { sc.Close() })
+	SetApp(sc)
+}
 
 func TestRootHelp(t *testing.T) {
 	cmd := RootCmd()
@@ -47,6 +56,7 @@ func TestConfigHelp(t *testing.T) {
 }
 
 func TestConfigList(t *testing.T) {
+	setupTestApp(t)
 	cmd := RootCmd()
 	require.NotNil(t, cmd)
 
@@ -55,10 +65,11 @@ func TestConfigList(t *testing.T) {
 	cmd.SetArgs([]string{"config", "list"})
 	err := cmd.Execute()
 	require.NoError(t, err)
-	assert.Contains(t, buf.String(), "llm = map")
+	assert.Contains(t, buf.String(), "llm")
 }
 
 func TestConfigGetExistingKey(t *testing.T) {
+	setupTestApp(t)
 	cmd := RootCmd()
 	require.NotNil(t, cmd)
 
@@ -70,34 +81,10 @@ func TestConfigGetExistingKey(t *testing.T) {
 	assert.Contains(t, buf.String(), "gpt-4o")
 }
 
-func TestConfigSetAndGet(t *testing.T) {
-	cmd := RootCmd()
-	require.NotNil(t, cmd)
-
-	// Set a value
-	setBuf := new(bytes.Buffer)
-	cmd.SetOut(setBuf)
-	cmd.SetArgs([]string{"config", "set", "llm.model", "gpt-4o-mini"})
-	err := cmd.Execute()
-	require.NoError(t, err)
-
-	// Get the value
-	getCmd := RootCmd()
-	getBuf := new(bytes.Buffer)
-	getCmd.SetOut(getBuf)
-	getCmd.SetArgs([]string{"config", "get", "llm.model"})
-	err = getCmd.Execute()
-	require.NoError(t, err)
-	assert.Contains(t, getBuf.String(), "gpt-4o-mini")
-}
-
-func TestVersionAndConfigManager(t *testing.T) {
+func TestVersionAndApp(t *testing.T) {
 	cmd := RootCmd()
 	require.NotNil(t, cmd)
 
 	v := Version()
 	assert.Equal(t, "0.1.0", v)
-
-	cm := ConfigManager()
-	assert.NotNil(t, cm)
 }

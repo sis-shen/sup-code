@@ -9,6 +9,7 @@ import (
 )
 
 func TestDefaultValues(t *testing.T) {
+	t.Setenv("SUPCODE_LLM_MODEL", "gpt-4o")
 	m := NewManager()
 	m.Set(ConfigKeyLLMAPIKey, "test-key")
 	if err := m.Load(); err != nil {

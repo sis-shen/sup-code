@@ -1,4 +1,4 @@
-package cli
+﻿package cli
 
 import (
 	"fmt"
@@ -7,7 +7,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func configCmd() *cobra.Command {
+func newConfigCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "config",
 		Short: "Manage configuration",
@@ -17,18 +17,21 @@ Configuration is stored in ~/.supcode/config.yaml.
 You can view, set, and list configuration values.`,
 	}
 
-	cmd.AddCommand(configGetCmd(), configSetCmd(), configListCmd())
+	cmd.AddCommand(newConfigGetCmd(), newConfigSetCmd(), newConfigListCmd())
 	return cmd
 }
 
-func configGetCmd() *cobra.Command {
+func newConfigGetCmd() *cobra.Command {
 	return &cobra.Command{
 		Use:   "get <key>",
 		Short: "Get a configuration value",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
+			if app == nil || app.Config == nil {
+				return fmt.Errorf("config not available")
+			}
 			key := args[0]
-			val := cfg.Get(key)
+			val := app.Config.Get(key)
 			if val == nil {
 				return fmt.Errorf("config key not found: %s", key)
 			}
@@ -38,20 +41,22 @@ func configGetCmd() *cobra.Command {
 	}
 }
 
-func configSetCmd() *cobra.Command {
+func newConfigSetCmd() *cobra.Command {
 	return &cobra.Command{
 		Use:   "set <key> <value>",
 		Short: "Set a configuration value",
 		Args:  cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
+			if app == nil || app.Config == nil {
+				return fmt.Errorf("config not available")
+			}
 			key := args[0]
 			value := args[1]
 
-			if err := cfg.Set(key, value); err != nil {
+			if err := app.Config.Set(key, value); err != nil {
 				return fmt.Errorf("set config: %w", err)
 			}
-
-			if err := cfg.Save(); err != nil {
+			if err := app.Config.Save(); err != nil {
 				return fmt.Errorf("save config: %w", err)
 			}
 
@@ -61,13 +66,16 @@ func configSetCmd() *cobra.Command {
 	}
 }
 
-func configListCmd() *cobra.Command {
+func newConfigListCmd() *cobra.Command {
 	return &cobra.Command{
 		Use:   "list",
 		Short: "List all configuration values",
 		Args:  cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			settings := cfg.AllSettings()
+			if app == nil || app.Config == nil {
+				return fmt.Errorf("config not available")
+			}
+			settings := app.Config.AllSettings()
 			keys := make([]string, 0, len(settings))
 			for k := range settings {
 				keys = append(keys, k)
