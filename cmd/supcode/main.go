@@ -1,4 +1,4 @@
-﻿package main
+package main
 
 import (
 	"context"
@@ -40,7 +40,19 @@ func main() {
 		}
 		cleaned = append(cleaned, arg)
 	}
-	os.Args = cleaned
+os.Args = cleaned
+
+	// ── Check for --help/-h/--version before requiring config ──
+	for _, arg := range os.Args[1:] {
+		if arg == "--help" || arg == "-h" || arg == "--version" || arg == "-v" {
+			rootCmd := cli.RootCmd()
+			rootCmd.SetArgs(os.Args[1:])
+			if err := rootCmd.Execute(); err != nil {
+				os.Exit(1)
+			}
+			return
+		}
+	}
 
 	// ── Configure logging ─────────────────────────────────────
 	logLevel := slog.LevelInfo

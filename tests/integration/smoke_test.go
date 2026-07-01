@@ -1,4 +1,4 @@
-﻿package integration
+package integration
 
 import (
 	"os"

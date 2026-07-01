@@ -19,19 +19,13 @@ func TestSessionSaveLoad(t *testing.T) {
 
 	session, err := sm.Create(ctx, "Save Test")
 	require.NoError(t, err)
-
-	err = sm.AppendMessage(ctx, session.ID, pkg.Message{
-		Role:    pkg.RoleUser,
-		Content: "Test message",
-	})
+	err = sm.AppendMessage(ctx, session.ID, pkg.Message{Role: pkg.RoleUser, Content: "Test message"})
 	require.NoError(t, err)
-
 	err = sm.CloseAll()
 	require.NoError(t, err)
 
 	sm2, err := NewSessionManager(dbPath)
 	require.NoError(t, err)
-
 	got, err := sm2.Get(ctx, session.ID)
 	require.NoError(t, err)
 	assert.Equal(t, "Save Test", got.Title)
@@ -51,7 +45,6 @@ func TestSessionAppendMessageToNonexistent(t *testing.T) {
 	sm, err := NewSessionManager(dbPath)
 	require.NoError(t, err)
 	ctx := context.Background()
-
 	err = sm.AppendMessage(ctx, "nonexistent-id", pkg.Message{Role: pkg.RoleUser, Content: "test"})
 	assert.Error(t, err)
 	os.Remove(dbPath)
@@ -62,7 +55,6 @@ func TestSessionSetStateNonexistent(t *testing.T) {
 	sm, err := NewSessionManager(dbPath)
 	require.NoError(t, err)
 	ctx := context.Background()
-
 	err = sm.SetState(ctx, "nonexistent", pkg.StatePlanning)
 	assert.Error(t, err)
 	os.Remove(dbPath)
@@ -73,7 +65,6 @@ func TestSessionSetPlanNonexistent(t *testing.T) {
 	sm, err := NewSessionManager(dbPath)
 	require.NoError(t, err)
 	ctx := context.Background()
-
 	err = sm.SetPlan(ctx, "nonexistent", pkg.Plan{Goal: "test"})
 	assert.Error(t, err)
 	os.Remove(dbPath)
@@ -84,7 +75,6 @@ func TestSessionCloseNonexistent(t *testing.T) {
 	sm, err := NewSessionManager(dbPath)
 	require.NoError(t, err)
 	ctx := context.Background()
-
 	err = sm.Close(ctx, "nonexistent")
 	assert.Error(t, err)
 	os.Remove(dbPath)
@@ -95,9 +85,29 @@ func TestListEmpty(t *testing.T) {
 	sm, err := NewSessionManager(dbPath)
 	require.NoError(t, err)
 	ctx := context.Background()
-
 	sessions, err := sm.List(ctx)
 	require.NoError(t, err)
 	assert.Empty(t, sessions)
 	os.Remove(dbPath)
+}
+
+func TestSaveToDisk(t *testing.T) {
+	sm := newTestSessionManager(t)
+	ctx := context.Background()
+	session, err := sm.Create(ctx, "TestSave")
+	require.NoError(t, err)
+	err = sm.saveToDisk()
+	require.NoError(t, err)
+	dbPath := sm.DBPath()
+	require.FileExists(t, dbPath)
+	data, err := os.ReadFile(dbPath)
+	require.NoError(t, err)
+	require.Contains(t, string(data), session.ID)
+}
+
+func TestSaveToDiskEmpty(t *testing.T) {
+	sm := newTestSessionManager(t)
+	err := sm.saveToDisk()
+	require.NoError(t, err)
+	require.FileExists(t, sm.DBPath())
 }
