@@ -1,0 +1,37 @@
+{
+  "name": "@supcode/cli",
+  "version": "0.1.0",
+  "description": "SupCode - AI coding agent with multi-agent collaboration (CLI)",
+  "author": "SupCode Team <team@supcode.dev>",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/supcode/supcode.git"
+  },
+  "homepage": "https://github.com/supcode/supcode",
+  "bugs": "https://github.com/supcode/supcode/issues",
+  "keywords": [
+    "ai",
+    "coding",
+    "agent",
+    "cli",
+    "supcode"
+  ],
+  "os": [
+    "darwin",
+    "linux",
+    "win32"
+  ],
+  "cpu": [
+    "x64",
+    "arm64"
+  ],
+  "scripts": {
+    "postinstall": "node install.js",
+    "preuninstall": "node install.js --uninstall"
+  },
+  "files": [
+    "install.js",
+    "package.json"
+  ]
+}

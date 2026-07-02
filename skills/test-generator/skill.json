@@ -1,0 +1,1 @@
+﻿{"name":"test-generator","version":"1.0.0","description":"Generate comprehensive test cases for functions and packages","author":"SupCode","tools":["bash","readfile","grep","glob"]}

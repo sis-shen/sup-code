@@ -1,0 +1,1 @@
+﻿{"name":"code-review","version":"1.0.0","description":"Analyze and review code changes for quality, security, and best practices","author":"SupCode","tools":["bash","readfile","grep"]}
