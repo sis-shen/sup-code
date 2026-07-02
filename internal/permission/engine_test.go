@@ -2,6 +2,7 @@ package permission
 
 import (
 	"context"
+	"path/filepath"
 	"sync"
 	"testing"
 
@@ -63,8 +64,8 @@ func TestAllowNormalPath(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Check failed: %v", err)
 	}
-	if dec != pkg.DecisionAllow {
-		t.Errorf("Check(/home/user/file.go) = %v, want %v", dec, pkg.DecisionAllow)
+	if dec != pkg.DecisionAsk {
+		t.Errorf("Check(/home/user/file.go) = %v, want %v (non-allowed path should ask)", dec, pkg.DecisionAsk)
 	}
 }
 
@@ -271,7 +272,6 @@ func TestListRules(t *testing.T) {
 	if len(rules) == 0 {
 		t.Fatal("ListRules returned empty slice")
 	}
-	// Ensure we got a copy by checking it doesn't reference the same underlying array
 	if len(rules) != len(DefaultRules()) {
 		t.Errorf("ListRules returned %d rules, want %d", len(rules), len(DefaultRules()))
 	}
@@ -283,7 +283,6 @@ func TestRemoveNonexistentRule(t *testing.T) {
 	if err != nil {
 		t.Fatalf("RemoveRule for nonexistent ID returned error: %v", err)
 	}
-	// Should still have all original rules
 	if len(e.ListRules()) != len(DefaultRules()) {
 		t.Errorf("after removing nonexistent rule, got %d rules, want %d", len(e.ListRules()), len(DefaultRules()))
 	}
@@ -294,7 +293,6 @@ func TestConcurrentReadWrite(t *testing.T) {
 	var wg sync.WaitGroup
 	ctx := context.Background()
 
-	// Concurrent reads
 	for i := 0; i < 5; i++ {
 		wg.Add(1)
 		go func() {
@@ -304,7 +302,6 @@ func TestConcurrentReadWrite(t *testing.T) {
 		}()
 	}
 
-	// Concurrent writes
 	for i := 0; i < 5; i++ {
 		wg.Add(1)
 		go func(i int) {
@@ -337,7 +334,6 @@ func TestLogAction(t *testing.T) {
 
 func TestNonMatchingActionType(t *testing.T) {
 	e := New()
-	// Command rule should not match a non-command action type
 	action := pkg.Action{Type: "tool", Target: "rm -rf /", ToolName: "bash"}
 	dec, err := e.Check(context.Background(), action)
 	if err != nil {
@@ -347,7 +343,6 @@ func TestNonMatchingActionType(t *testing.T) {
 		t.Errorf("non-matching type should allow, got %v", dec)
 	}
 
-	// Path rule should not match a command action type
 	action2 := pkg.Action{Type: "command", Target: "/etc/hosts"}
 	dec2, err := e.Check(context.Background(), action2)
 	if err != nil {
@@ -400,5 +395,154 @@ func TestNewWithRulesSorted(t *testing.T) {
 	}
 	if list[0].Priority != 1 || list[1].Priority != 10 {
 		t.Errorf("rules not sorted by priority: %+v", list)
+	}
+}
+
+// ===== Phase 2 tests =====
+
+func TestWriteFileTriggersAsk(t *testing.T) {
+	e := New()
+	action := pkg.Action{Type: "file_write", Target: "/var/data/file.txt"}
+	dec, err := e.Check(context.Background(), action)
+	if err != nil {
+		t.Fatalf("Check failed: %v", err)
+	}
+	if dec != pkg.DecisionAsk {
+		t.Errorf("WriteFile should ask, got %v", dec)
+	}
+}
+
+func TestDeleteFileTriggersAsk(t *testing.T) {
+	e := New()
+	action := pkg.Action{Type: "file_delete", Target: "/var/data/old.txt"}
+	dec, err := e.Check(context.Background(), action)
+	if err != nil {
+		t.Fatalf("Check failed: %v", err)
+	}
+	if dec != pkg.DecisionAsk {
+		t.Errorf("DeleteFile should ask, got %v", dec)
+	}
+}
+
+func TestWriteFileAllowWhenAllowedDir(t *testing.T) {
+	e := New()
+	e.AddAllowedDir("/var/data")
+	action := pkg.Action{Type: "file_write", Target: "/var/data/file.txt"}
+	dec, err := e.Check(context.Background(), action)
+	if err != nil {
+		t.Fatalf("Check failed: %v", err)
+	}
+	if dec != pkg.DecisionAllow {
+		t.Errorf("WriteFile in allowed dir should allow, got %v", dec)
+	}
+}
+
+func TestPathConfirmationCache(t *testing.T) {
+	e := New()
+	path := "/some/path/file.txt"
+	action := pkg.Action{Type: "file_write", Target: path}
+
+	dec, err := e.Check(context.Background(), action)
+	if err != nil {
+		t.Fatalf("Check failed: %v", err)
+	}
+	if dec != pkg.DecisionAsk {
+		t.Errorf("first check should ask, got %v", dec)
+	}
+
+	e.ConfirmPath(path)
+
+	dec, err = e.Check(context.Background(), action)
+	if err != nil {
+		t.Fatalf("Check failed: %v", err)
+	}
+	if dec != pkg.DecisionAllow {
+		t.Errorf("after ConfirmPath should allow, got %v", dec)
+	}
+}
+
+func TestFirstUseIntegration(t *testing.T) {
+	dbPath := filepath.Join(t.TempDir(), "first_use_engine_test.db")
+	tracker, err := NewFirstUseTracker(dbPath)
+	if err != nil {
+		t.Fatalf("NewFirstUseTracker failed: %v", err)
+	}
+	defer tracker.Close()
+
+	e := New()
+	e.SetFirstUseTracker(tracker)
+
+	action := pkg.Action{Type: "tool", ToolName: "unknown-tool", Target: "unknown-tool"}
+	dec, err := e.Check(context.Background(), action)
+	if err != nil {
+		t.Fatalf("Check failed: %v", err)
+	}
+	if dec != pkg.DecisionAsk {
+		t.Errorf("first use should ask, got %v", dec)
+	}
+
+	if err := tracker.Authorize("unknown-tool"); err != nil {
+		t.Fatalf("Authorize failed: %v", err)
+	}
+
+	dec, err = e.Check(context.Background(), action)
+	if err != nil {
+		t.Fatalf("Check failed: %v", err)
+	}
+	if dec != pkg.DecisionAllow {
+		t.Errorf("after authorize should allow, got %v", dec)
+	}
+}
+
+func TestFirstUseNoTracker(t *testing.T) {
+	// When no tracker is attached, tool action should pass through
+	e := New()
+	action := pkg.Action{Type: "tool", ToolName: "some-tool", Target: "some-tool"}
+	dec, err := e.Check(context.Background(), action)
+	if err != nil {
+		t.Fatalf("Check failed: %v", err)
+	}
+	if dec != pkg.DecisionAllow {
+		t.Errorf("without tracker tool should allow, got %v", dec)
+	}
+}
+
+func TestSetAllowedDirs(t *testing.T) {
+	e := New()
+	e.SetAllowedDirs([]string{"/project/a", "/project/b"})
+	action := pkg.Action{Type: "file_write", Target: "/project/a/main.go"}
+	dec, err := e.Check(context.Background(), action)
+	if err != nil {
+		t.Fatalf("Check failed: %v", err)
+	}
+	if dec != pkg.DecisionAllow {
+		t.Errorf("file in allowed dir should allow, got %v", dec)
+	}
+}
+
+func TestSetAndGetTrackerAuditor(t *testing.T) {
+	e := New()
+	dbPath := filepath.Join(t.TempDir(), "tracker_test.db")
+	tracker, err := NewFirstUseTracker(dbPath)
+	if err != nil {
+		t.Fatalf("NewFirstUseTracker failed: %v", err)
+	}
+	defer tracker.Close()
+
+	auditPath := filepath.Join(t.TempDir(), "audit_test.db")
+	auditor, err := NewAuditLogger(auditPath)
+	if err != nil {
+		t.Fatalf("NewAuditLogger failed: %v", err)
+	}
+	defer auditor.Close()
+
+	e.SetFirstUseTracker(tracker)
+	e.SetAuditLogger(auditor)
+
+	if e.FirstUseTracker() != tracker {
+		t.Error("FirstUseTracker getter mismatch")
+	}
+	if e.AuditLogger() != auditor {
+		t.Error("AuditLogger getter mismatch")
 	}
 }

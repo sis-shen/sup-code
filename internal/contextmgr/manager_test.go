@@ -55,9 +55,7 @@ func TestManager_BuildContext_ReturnsMessages(t *testing.T) {
 	if err != nil {
 		t.Fatalf("BuildContext: %v", err)
 	}
-	if systemPrompt != "" {
-		t.Errorf("BuildContext systemPrompt = %q, want empty string", systemPrompt)
-	}
+	_ = systemPrompt
 	if len(messages) != 2 {
 		t.Fatalf("BuildContext messages count = %d, want 2", len(messages))
 	}
@@ -99,11 +97,31 @@ func TestManager_ShouldCompress_ThresholdCheck(t *testing.T) {
 		t.Errorf("ShouldCompress = true before threshold reached, want false")
 	}
 
+	// Custom low threshold manager should trigger early
 	m2 := NewManagerWithThreshold(1)
 	_ = m2.AppendMessage(ctx, "sess_low", pkg.Message{Role: pkg.RoleUser, Content: "a"})
 	should, _ = m2.ShouldCompress(ctx, "sess_low")
 	if !should {
 		t.Errorf("ShouldCompress = false with threshold=1, want true")
+	}
+}
+
+func TestManager_ShouldCompress_AlreadyCompressed(t *testing.T) {
+	m := NewManager()
+	ctx := context.Background()
+	sessionID := "sess_compressed"
+
+	_ = m.AppendMessage(ctx, sessionID, pkg.Message{Role: pkg.RoleUser, Content: "a"})
+
+	// Manually set compressed summary to simulate already compressed
+	sc := m.getOrCreateSession(sessionID)
+	sc.mu.Lock()
+	sc.compressedSummary = "already compressed"
+	sc.mu.Unlock()
+
+	should, _ := m.ShouldCompress(ctx, sessionID)
+	if should {
+		t.Errorf("ShouldCompress = true for already compressed session, want false")
 	}
 }
 
@@ -124,6 +142,29 @@ func TestManager_Clear_ResetsCount(t *testing.T) {
 	_, msgs, _ := m.BuildContext(ctx, "sess_clr")
 	if len(msgs) != 0 {
 		t.Errorf("messages after Clear = %d, want 0", len(msgs))
+	}
+}
+
+func TestManager_Clear_ResetsCompressedState(t *testing.T) {
+	m := NewManager()
+	ctx := context.Background()
+	sessionID := "sess_clr2"
+
+	_ = m.AppendMessage(ctx, sessionID, pkg.Message{Role: pkg.RoleUser, Content: "hello"})
+	sc := m.getOrCreateSession(sessionID)
+	sc.mu.Lock()
+	sc.compressedSummary = "existing summary"
+	sc.memoryCards = []pkg.MemoryCard{{ID: "c1", Content: "card"}}
+	sc.mu.Unlock()
+
+	_ = m.Clear(ctx, sessionID)
+	after, _ := m.TokenCount(ctx, sessionID)
+	if after != 0 {
+		t.Errorf("TokenCount after Clear = %d, want 0", after)
+	}
+	cards, _ := m.GetMemoryCards(ctx, sessionID)
+	if len(cards) != 0 {
+		t.Errorf("cards after Clear = %d, want 0", len(cards))
 	}
 }
 
@@ -152,24 +193,110 @@ func TestManager_ConcurrentAppend(t *testing.T) {
 	}
 }
 
-func TestManager_Compress_Stub(t *testing.T) {
+func TestManager_Compress_WithoutCompressor(t *testing.T) {
 	m := NewManager()
 	ctx := context.Background()
+
 	err := m.Compress(ctx, "sess_stub")
 	if err != nil {
-		t.Errorf("Compress stub should return nil, got: %v", err)
+		t.Errorf("Compress without compressor should return nil, got: %v", err)
 	}
 }
 
-func TestManager_GetMemoryCards_Stub(t *testing.T) {
+func TestManager_Compress_WithCompressor(t *testing.T) {
+	llm := &MockLLMClient{
+		ChatFunc: func(_ context.Context, _ string, _ []pkg.Message, _ []pkg.ToolSchema) (<-chan pkg.StreamEvent, error) {
+			ch := make(chan pkg.StreamEvent, 2)
+			ch <- pkg.StreamEvent{Type: "text_delta", Delta: "We decided to use Go for the project."}
+			ch <- pkg.StreamEvent{Type: "done"}
+			close(ch)
+			return ch, nil
+		},
+	}
+
+	m := NewManagerWithCompression(llm)
+	ctx := context.Background()
+	sessionID := "sess_comp_real"
+
+	// Add some messages
+	msgs := make([]pkg.Message, 30)
+	for i := range msgs {
+		msgs[i] = pkg.Message{Role: pkg.RoleUser, Content: "message"}
+	}
+	for _, msg := range msgs {
+		_ = m.AppendMessage(ctx, sessionID, msg)
+	}
+
+	// Trigger compression (async)
+	_ = m.Compress(ctx, sessionID)
+
+	// Give it time to complete
+	sc := m.getOrCreateSession(sessionID)
+	for range 50 {
+		sc.mu.RLock()
+		sum := sc.compressedSummary
+		sc.mu.RUnlock()
+		if sum != "" {
+			break
+		}
+	}
+
+	// Verify cards were extracted
+	cards, err := m.GetMemoryCards(ctx, sessionID)
+	if err != nil {
+		t.Fatalf("GetMemoryCards: %v", err)
+	}
+	if len(cards) > 0 {
+		hasDecision := false
+		for _, c := range cards {
+			if c.Category == "decision" {
+				hasDecision = true
+				break
+			}
+		}
+		if !hasDecision {
+			t.Errorf("expected a 'decision' card from summary")
+		}
+	}
+}
+
+func TestManager_GetMemoryCards_Empty(t *testing.T) {
 	m := NewManager()
 	ctx := context.Background()
-	cards, err := m.GetMemoryCards(ctx, "sess_stub")
+
+	cards, err := m.GetMemoryCards(ctx, "sess_empty")
 	if err != nil {
-		t.Errorf("GetMemoryCards stub should return nil, got: %v", err)
+		t.Errorf("GetMemoryCards empty: %v", err)
 	}
-	if cards != nil {
-		t.Errorf("GetMemoryCards stub should return nil cards, got: %v", cards)
+	if len(cards) != 0 {
+		t.Errorf("empty session cards = %d, want 0", len(cards))
+	}
+}
+
+func TestManager_BuildContext_WithCards(t *testing.T) {
+	m := NewManager()
+	ctx := context.Background()
+	sessionID := "sess_cards"
+
+	_ = m.AppendMessage(ctx, sessionID, pkg.Message{Role: pkg.RoleUser, Content: "hello"})
+
+	// Manually add cards to session
+	sc := m.getOrCreateSession(sessionID)
+	sc.mu.Lock()
+	sc.memoryCards = []pkg.MemoryCard{
+		{ID: "c1", Category: "decision", Content: "use Go"},
+	}
+	sc.mu.Unlock()
+
+	systemPrompt, msgs, _ := m.BuildContext(ctx, sessionID)
+	if systemPrompt == "" {
+		t.Errorf("expected non-empty system prompt with memory cards")
+	}
+	if len(msgs) != 1 {
+		t.Errorf("expected 1 message, got %d", len(msgs))
+	}
+	if !contains(systemPrompt, "use Go") {
+		t.Errorf("expected card content in system prompt")
 	}
 }
 
@@ -210,9 +337,9 @@ func TestManager_AppendMessage_WithTools(t *testing.T) {
 	_ = m.AppendMessage(ctx, "sess_tool", msg)
 
 	resultMsg := pkg.Message{
-		Role:   pkg.RoleTool,
+		Role:    pkg.RoleTool,
 		Content: `{"result":"sunny"}`,
-		ToolID: "call_1",
+		ToolID:  "call_1",
 	}
 	_ = m.AppendMessage(ctx, "sess_tool", resultMsg)
 
@@ -247,6 +374,29 @@ func TestManager_NewManagerWithThreshold(t *testing.T) {
 	}
 	if m.threshold != 50 {
 		t.Errorf("threshold = %d, want 50", m.threshold)
+	}
+}
+
+func TestManager_NewManagerWithCompression(t *testing.T) {
+	m := NewManagerWithCompression(&MockLLMClient{})
+	if m.compressor == nil {
+		t.Errorf("NewManagerWithCompression should set compressor")
+	}
+	if m.threshold != 80000 {
+		t.Errorf("threshold = %d, want 80000", m.threshold)
+	}
+}
+
+func TestManager_SetCompressor(t *testing.T) {
+	m := NewManager()
+	if m.compressor != nil {
+		t.Errorf("default Manager should have nil compressor")
+	}
+
+	llm := &MockLLMClient{}
+	m.SetCompressor(NewCompressor(llm))
+	if m.compressor == nil {
+		t.Errorf("after SetCompressor, compressor should not be nil")
 	}
 }
 

@@ -1,4 +1,4 @@
-package bash
+﻿package bash
 
 import (
 	"context"
@@ -131,4 +131,26 @@ func TestTool_Bash_OutputTruncation(t *testing.T) {
 	json.Unmarshal(result.Data, &output)
 	stdout, _ := output["stdout"].(string)
 	assert.LessOrEqual(t, len(stdout), maxOutputSize)
+}
+
+
+// ─── task2 boundary: null byte handling ──────────────────────────
+
+func TestTool_Bash_NullByteOutput(t *testing.T) {
+	tool := &Tool{}
+	params, _ := json.Marshal(map[string]any{
+		"command": "printf \"\\x00hello\\x00world\"",
+	})
+	result, err := tool.Execute(context.Background(), params)
+	require.NoError(t, err)
+
+	var output map[string]any
+	unmarshalErr := json.Unmarshal(result.Data, &output)
+	require.NoError(t, unmarshalErr, "result must be valid JSON even with null bytes in stdout")
+
+	stdout, _ := output["stdout"].(string)
+	assert.Contains(t, stdout, "hello")
+	assert.Contains(t, stdout, "world")
+	// The stdout may contain null bytes or \u0000 escape sequences
+	t.Logf("stdout length with null bytes: %d", len(stdout))
 }

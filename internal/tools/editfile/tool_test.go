@@ -1,4 +1,4 @@
-package editfile
+﻿package editfile
 
 import (
 	"context"
@@ -113,4 +113,87 @@ func TestTool_EditFile_JSONSchemaRequiredFields(t *testing.T) {
 	assert.Contains(t, required, "path")
 	assert.Contains(t, required, "old_string")
 	assert.Contains(t, required, "new_string")
+}
+
+
+// ─── task2 boundary: old_string with regex special chars ─────────
+
+func TestTool_EditFile_OldStringRegexSpecialChars(t *testing.T) {
+	t.Run("dot_star", func(t *testing.T) {
+		tmpDir := t.TempDir()
+		filePath := filepath.Join(tmpDir, "test.txt")
+		require.NoError(t, os.WriteFile(filePath, []byte("hello .* world"), 0644))
+
+		tool := &Tool{}
+		params, _ := json.Marshal(map[string]any{
+			"path":       filePath,
+			"old_string": ".*",
+			"new_string": "REPLACED",
+		})
+		result, err := tool.Execute(context.Background(), params)
+		require.NoError(t, err)
+		assert.True(t, result.Success)
+
+		data, _ := os.ReadFile(filePath)
+		assert.Equal(t, "hello REPLACED world", string(data))
+	})
+
+	t.Run("func_parens", func(t *testing.T) {
+		tmpDir := t.TempDir()
+		filePath := filepath.Join(tmpDir, "test.txt")
+		require.NoError(t, os.WriteFile(filePath, []byte("func() { return 1; }"), 0644))
+
+		tool := &Tool{}
+		params, _ := json.Marshal(map[string]any{
+			"path":       filePath,
+			"old_string": "func()",
+			"new_string": "newFunc()",
+		})
+		result, err := tool.Execute(context.Background(), params)
+		require.NoError(t, err)
+		assert.True(t, result.Success)
+
+		data, _ := os.ReadFile(filePath)
+		assert.Equal(t, "newFunc() { return 1; }", string(data))
+	})
+
+	t.Run("dollar_var", func(t *testing.T) {
+		tmpDir := t.TempDir()
+		filePath := filepath.Join(tmpDir, "test.txt")
+		require.NoError(t, os.WriteFile(filePath, []byte("echo $var"), 0644))
+
+		tool := &Tool{}
+		params, _ := json.Marshal(map[string]any{
+			"path":       filePath,
+			"old_string": "$var",
+			"new_string": "$replaced",
+		})
+		result, err := tool.Execute(context.Background(), params)
+		require.NoError(t, err)
+		assert.True(t, result.Success)
+
+		data, _ := os.ReadFile(filePath)
+		assert.Equal(t, "echo $replaced", string(data))
+	})
+
+	t.Run("literal_backslash_n", func(t *testing.T) {
+		tmpDir := t.TempDir()
+		filePath := filepath.Join(tmpDir, "test.txt")
+		require.NoError(t, os.WriteFile(filePath, []byte("line1\\nline2"), 0644))
+
+		tool := &Tool{}
+		// Match literal \n (two chars), not newline
+		params, _ := json.Marshal(map[string]any{
+			"path":       filePath,
+			"old_string": "\\n",
+			"new_string": " replaced ",
+		})
+		result, err := tool.Execute(context.Background(), params)
+		require.NoError(t, err)
+		assert.True(t, result.Success)
+
+		data, _ := os.ReadFile(filePath)
+		// \n (actual newline) is NOT matched; "line1\nline2" has no literal "\n"
+		assert.Equal(t, "line1 replaced line2", string(data))
+	})
 }

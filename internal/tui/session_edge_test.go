@@ -12,7 +12,7 @@ import (
 )
 
 func TestSessionSaveLoad(t *testing.T) {
-	dbPath := filepath.Join(t.TempDir(), "test_save.json")
+	dbPath := filepath.Join(t.TempDir(), "test_save.db")
 	sm, err := NewSessionManager(dbPath)
 	require.NoError(t, err)
 	ctx := context.Background()
@@ -29,11 +29,12 @@ func TestSessionSaveLoad(t *testing.T) {
 	got, err := sm2.Get(ctx, session.ID)
 	require.NoError(t, err)
 	assert.Equal(t, "Save Test", got.Title)
+	assert.Len(t, got.Messages, 1)
 	os.Remove(dbPath)
 }
 
 func TestSessionDBPath(t *testing.T) {
-	dbPath := filepath.Join(t.TempDir(), "dbpath_test.json")
+	dbPath := filepath.Join(t.TempDir(), "dbpath_test.db")
 	sm, err := NewSessionManager(dbPath)
 	require.NoError(t, err)
 	assert.Equal(t, dbPath, sm.DBPath())
@@ -41,7 +42,7 @@ func TestSessionDBPath(t *testing.T) {
 }
 
 func TestSessionAppendMessageToNonexistent(t *testing.T) {
-	dbPath := filepath.Join(t.TempDir(), "append_err.json")
+	dbPath := filepath.Join(t.TempDir(), "append_err.db")
 	sm, err := NewSessionManager(dbPath)
 	require.NoError(t, err)
 	ctx := context.Background()
@@ -51,7 +52,7 @@ func TestSessionAppendMessageToNonexistent(t *testing.T) {
 }
 
 func TestSessionSetStateNonexistent(t *testing.T) {
-	dbPath := filepath.Join(t.TempDir(), "state_err.json")
+	dbPath := filepath.Join(t.TempDir(), "state_err.db")
 	sm, err := NewSessionManager(dbPath)
 	require.NoError(t, err)
 	ctx := context.Background()
@@ -61,7 +62,7 @@ func TestSessionSetStateNonexistent(t *testing.T) {
 }
 
 func TestSessionSetPlanNonexistent(t *testing.T) {
-	dbPath := filepath.Join(t.TempDir(), "plan_err.json")
+	dbPath := filepath.Join(t.TempDir(), "plan_err.db")
 	sm, err := NewSessionManager(dbPath)
 	require.NoError(t, err)
 	ctx := context.Background()
@@ -71,7 +72,7 @@ func TestSessionSetPlanNonexistent(t *testing.T) {
 }
 
 func TestSessionCloseNonexistent(t *testing.T) {
-	dbPath := filepath.Join(t.TempDir(), "close_err.json")
+	dbPath := filepath.Join(t.TempDir(), "close_err.db")
 	sm, err := NewSessionManager(dbPath)
 	require.NoError(t, err)
 	ctx := context.Background()
@@ -81,7 +82,7 @@ func TestSessionCloseNonexistent(t *testing.T) {
 }
 
 func TestListEmpty(t *testing.T) {
-	dbPath := filepath.Join(t.TempDir(), "empty.json")
+	dbPath := filepath.Join(t.TempDir(), "empty.db")
 	sm, err := NewSessionManager(dbPath)
 	require.NoError(t, err)
 	ctx := context.Background()
@@ -91,23 +92,24 @@ func TestListEmpty(t *testing.T) {
 	os.Remove(dbPath)
 }
 
-func TestSaveToDisk(t *testing.T) {
-	sm := newTestSessionManager(t)
+func TestSQLitePersistence(t *testing.T) {
+	dbPath := filepath.Join(t.TempDir(), "persist.db")
+	sm, err := NewSessionManager(dbPath)
+	require.NoError(t, err)
 	ctx := context.Background()
-	session, err := sm.Create(ctx, "TestSave")
-	require.NoError(t, err)
-	err = sm.saveToDisk()
-	require.NoError(t, err)
-	dbPath := sm.DBPath()
-	require.FileExists(t, dbPath)
-	data, err := os.ReadFile(dbPath)
-	require.NoError(t, err)
-	require.Contains(t, string(data), session.ID)
-}
 
-func TestSaveToDiskEmpty(t *testing.T) {
-	sm := newTestSessionManager(t)
-	err := sm.saveToDisk()
+	session, err := sm.Create(ctx, "Persist Test")
 	require.NoError(t, err)
-	require.FileExists(t, sm.DBPath())
+	err = sm.AppendMessage(ctx, session.ID, pkg.Message{Role: pkg.RoleUser, Content: "hello"})
+	require.NoError(t, err)
+	err = sm.Close(ctx, session.ID)
+	require.NoError(t, err)
+
+	sm2, err := NewSessionManager(dbPath)
+	require.NoError(t, err)
+	got, err := sm2.Get(ctx, session.ID)
+	require.NoError(t, err)
+	assert.Equal(t, "Persist Test", got.Title)
+	assert.Len(t, got.Messages, 1)
+	os.Remove(dbPath)
 }

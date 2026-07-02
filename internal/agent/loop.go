@@ -18,7 +18,8 @@ const (
     StateIdle      LoopState = "idle"
     StatePlanning  LoopState = "planning"
     StateActing    LoopState = "acting"
-    StateObserving LoopState = "observing"
+    StateObserving  LoopState = "observing"
+    StateWaitingApproval LoopState = "waiting_approval"
     StateCompleted LoopState = "completed"
     StateError     LoopState = "error"
 )
@@ -256,16 +257,6 @@ func (a *Agent) buildSummary(plan *pkg.Plan, results []string) string {
         summary += "- " + r + "\n"
     }
     return summary
-}
-
-// RunPlan implements pkg.Agent.RunPlan (stub for Phase 2).
-func (a *Agent) RunPlan(ctx context.Context, sessionID string, input string) (*pkg.AgentResult, error) {
-    return nil, fmt.Errorf("RunPlan not implemented in MVP")
-}
-
-// ApprovePlan implements pkg.Agent.ApprovePlan (stub for Phase 2).
-func (a *Agent) ApprovePlan(ctx context.Context, sessionID string) (*pkg.AgentResult, error) {
-    return nil, fmt.Errorf("ApprovePlan not implemented in MVP")
 }
 
 // GetSession implements pkg.Agent.GetSession.

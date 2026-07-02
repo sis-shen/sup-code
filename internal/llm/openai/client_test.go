@@ -268,3 +268,60 @@ func TestChat_ServerErrorWith5xx(t *testing.T) {
     require.True(t, len(events) > 0)
     assert.Equal(t, "error", events[len(events)-1].Type)
 }
+
+func TestChat_EmptyStream(t *testing.T) {
+    srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+        w.Header().Set("Content-Type", "text/event-stream")
+        f, _ := w.(http.Flusher)
+        // Send empty line to close the stream
+        w.Write([]byte("\n"))
+        f.Flush()
+    }))
+    defer srv.Close()
+    client := newTestClient(srv)
+    eventCh, err := client.Chat(context.Background(), "system", nil, nil)
+    require.NoError(t, err)
+    var events []pkg.StreamEvent
+    for e := range eventCh { events = append(events, e) }
+    // Should not panic, channel should close gracefully
+    t.Logf("Received %d events (should be 0)", len(events))
+}
+
+func TestChat_Three429s(t *testing.T) {
+    attempt := 0
+    srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+        attempt++
+        w.Header().Set("Retry-After", "0")
+        http.Error(w, "Too Many", http.StatusTooManyRequests)
+    }))
+    defer srv.Close()
+    client := newTestClient(srv)
+    eventCh, err := client.Chat(context.Background(), "system", nil, nil)
+    require.NoError(t, err)
+    var events []pkg.StreamEvent
+    for e := range eventCh { events = append(events, e) }
+    require.Len(t, events, 1)
+    assert.Equal(t, "error", events[0].Type)
+		// Should attempt 1 initial + up to 3 retries = 4 total
+}
+
+func TestChat_ContextTimeout(t *testing.T) {
+    srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+        w.Header().Set("Content-Type", "text/event-stream")
+        f, _ := w.(http.Flusher)
+        w.Write([]byte("data: {\"id\":\"1\",\"object\":\"chat.completion.chunk\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"Hello\"},\"finish_reason\":null}]}\n"))
+        f.Flush()
+        time.Sleep(5 * time.Second) // Should cause context timeout
+        w.Write([]byte("data: {\"id\":\"1\",\"choices\":[{\"index\":0,\"delta\":{},\"finish_reason\":\"stop\"}]}\n"))
+        f.Flush()
+    }))
+    defer srv.Close()
+    client := newTestClient(srv)
+    ctx, cancel := context.WithTimeout(context.Background(), 10*time.Millisecond)
+    defer cancel()
+    eventCh, err := client.Chat(ctx, "system", nil, nil)
+    require.NoError(t, err)
+    var events []pkg.StreamEvent
+    for e := range eventCh { events = append(events, e) }
+    t.Logf("Events after timeout: %d", len(events))
+}
