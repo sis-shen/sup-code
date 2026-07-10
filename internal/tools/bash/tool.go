@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os/exec"
+	"runtime"
 	"time"
 
 	"github.com/supcode/supcode/pkg"
@@ -51,7 +52,7 @@ type Tool struct{}
 func (t *Tool) Name() string { return "bash" }
 
 func (t *Tool) Description() string {
-	return "Execute a shell command with timeout and output truncation."
+	return fmt.Sprintf("Execute a shell command (%s) with timeout and output truncation.", getShell())
 }
 
 func (t *Tool) Schema() pkg.ToolSchema {
@@ -95,7 +96,7 @@ func (t *Tool) Execute(ctx context.Context, params json.RawMessage) (pkg.ToolRes
 	default:
 	}
 
-	cmd := execCommand(execCtx, getShell(), "-c", fp.Command)
+	cmd := execCommand(execCtx, getShell(), getShellFlag(), fp.Command)
 	if fp.WorkDir != nil && *fp.WorkDir != "" {
 		cmd.Dir = *fp.WorkDir
 	}
@@ -145,5 +146,15 @@ func (t *Tool) Execute(ctx context.Context, params json.RawMessage) (pkg.ToolRes
 }
 
 func getShell() string {
+	if runtime.GOOS == "windows" {
+		return "powershell.exe"
+	}
 	return "bash"
+}
+
+func getShellFlag() string {
+	if runtime.GOOS == "windows" {
+		return "-Command"
+	}
+	return "-c"
 }

@@ -211,7 +211,21 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.status = fmt.Sprintf("Error: %v", msg.Err)
 		return m, nil
 
-case spinner.TickMsg:
+	case agentResultMsg:
+		if msg.err != nil {
+			m.status = fmt.Sprintf("Error: %v", msg.err)
+			m.err = msg.err
+			m.isThinking = false
+		} else if msg.result != nil {
+			if msg.result.Summary != "" {
+				m.addMessage(pkg.RoleAssistant, msg.result.Summary)
+			}
+			m.isThinking = false
+			m.status = "Ready"
+		}
+		return m, nil
+
+	case spinner.TickMsg:
 	m.spinner, _ = m.spinner.Update(msg)
 	return m, nil
 
@@ -273,7 +287,7 @@ func (m *Model) handleNormalKey(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 		m.thinkingTool = ""
 		m.thinkingParams = ""
 		m.status = "Thinking..."
-		return m, nil
+		return m, m.service.RunQueryCmd(context.Background(), m.sessionID, input)
 
 	case tea.KeyUp:
 		if len(m.inputHistory) > 0 {

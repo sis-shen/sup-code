@@ -9,8 +9,16 @@ import (
 	"sync"
 	"time"
 
+	tea "github.com/charmbracelet/bubbletea"
 	"github.com/supcode/supcode/pkg"
 )
+
+// agentResultMsg 携带 Agent.Run 结果给 Bubble Tea 处理
+type agentResultMsg struct {
+	sessionID string
+	result    *pkg.AgentResult
+	err       error
+}
 
 // ─── compile-time interface check ──────────────────────────────
 var _ pkg.InteractionService = (*Service)(nil)
@@ -19,6 +27,9 @@ var _ pkg.InteractionService = (*Service)(nil)
 // 桥接引擎层事件到 Bubble Tea 消息系统
 type Service struct {
 	mu sync.RWMutex
+
+	// 引擎层 Agent
+	agent pkg.Agent
 
 	// 流式响应通道映射
 	streamChannels map[string]chan pkg.StreamEvent
@@ -46,6 +57,36 @@ func NewService(sm *SessionManager) *Service {
 		confirmChannels: make(map[string]chan bool),
 		inputChannels:   make(map[string]chan string),
 		sessionManager:  sm,
+	}
+}
+
+// SetAgent 设置引擎层 Agent
+func (s *Service) SetAgent(a pkg.Agent) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	s.agent = a
+}
+
+// RunQueryCmd 异步调用 Agent.Run，返回 Bubble Tea 可执行的 Cmd
+func (s *Service) RunQueryCmd(ctx context.Context, sessionID, input string) tea.Cmd {
+	return func() tea.Msg {
+		s.mu.RLock()
+		a := s.agent
+		s.mu.RUnlock()
+
+		if a == nil {
+			return agentResultMsg{
+				sessionID: sessionID,
+				err:       fmt.Errorf("no agent configured"),
+			}
+		}
+
+		result, err := a.Run(ctx, sessionID, input)
+		return agentResultMsg{
+			sessionID: sessionID,
+			result:    result,
+			err:       err,
+		}
 	}
 }
 

@@ -95,15 +95,9 @@ func (m *Manager) Load() error {
 		}
 	}
 
-	// 5. 验证必要的配置项
-	if m.v.GetString(ConfigKeyLLMAPIKey) == "" {
-		return fmt.Errorf("missing required config: %s (set %s or %s env var)",
-			ConfigKeyLLMAPIKey,
-			"SUPCODE_LLM_API_KEY",
-			"llm.api_key in config file",
-		)
-	}
-
+ 	// 5. API key validation is deferred to Agent layer.
+ 	// Config must remain loadable without an API key so that
+ 	// subcommands like "config" and "skill" work offline.
 	return nil
 }
 
