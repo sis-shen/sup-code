@@ -23,6 +23,19 @@ func TestParseValidManifest(t *testing.T) {
 	assert.Equal(t, "Review code changes", m.Description)
 }
 
+func TestParseManifestWithUTF8BOM(t *testing.T) {
+	// 部分编辑器会给 JSON 文件加 UTF-8 BOM，解析应容忍它。
+	data := append([]byte{0xEF, 0xBB, 0xBF}, []byte(`{
+		"name": "code-review",
+		"version": "1.0.0",
+		"description": "Review code changes"
+	}`)...)
+	m, err := ParseManifest(data)
+	require.NoError(t, err)
+	require.NotNil(t, m)
+	assert.Equal(t, "code-review", m.Name)
+}
+
 func TestParseInvalidName(t *testing.T) {
 	data := []byte(`{"name": "Code Review!", "version": "1.0.0", "description": "test"}`)
 	_, err := ParseManifest(data)

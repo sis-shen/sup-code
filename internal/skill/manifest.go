@@ -1,6 +1,7 @@
 package skill
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"os"
@@ -9,6 +10,9 @@ import (
 )
 
 var namePattern = regexp.MustCompile(`^[a-z0-9-]+$`)
+
+// utf8BOM 是 UTF-8 字节序标记，部分编辑器会在文件开头写入。
+var utf8BOM = []byte{0xEF, 0xBB, 0xBF}
 
 type SkillManifest struct {
 	Name        string   `json:"name"`
@@ -27,6 +31,7 @@ type Skill struct {
 }
 
 func ParseManifest(data []byte) (*SkillManifest, error) {
+	data = bytes.TrimPrefix(data, utf8BOM)
 	var m SkillManifest
 	if err := json.Unmarshal(data, &m); err != nil {
 		return nil, fmt.Errorf("parse manifest: %w", err)

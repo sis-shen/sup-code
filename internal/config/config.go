@@ -151,5 +151,10 @@ func (m *Manager) AllSettings() map[string]any {
 	return m.v.AllSettings()
 }
 
+// UnmarshalKey 将指定 key 下的配置解析到 out
+func (m *Manager) UnmarshalKey(key string, out any) error {
+	return m.v.UnmarshalKey(key, out)
+}
+
 // ── 编译期接口检查 ──────────────────────────────────────────
 var _ pkg.Config = (*Manager)(nil)

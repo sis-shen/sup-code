@@ -55,6 +55,7 @@ func (m *MockToolRegistry) Execute(ctx context.Context, name string, params json
 }
 func (m *MockToolRegistry) RegisterHook(hook pkg.ToolHook) error { return nil }
 func (m *MockToolRegistry) UnregisterHook(hookName string) error { return nil }
+func (m *MockToolRegistry) ListHookNames() []string              { return nil }
 
 // MockWorktreeManager implements pkg.WorktreeManager for testing.
 type MockWorktreeManager struct {

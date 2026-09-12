@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"io"
 	"log/slog"
 	"os"
 	"os/signal"
@@ -132,6 +133,9 @@ func main() {
 		slog.Error("failed to build agent for TUI", "error", err)
 		os.Exit(1)
 	}
+	if closer, ok := agent.(io.Closer); ok {
+		defer closer.Close()
+	}
 	if err := internal.InitTUI(ctx, agent); err != nil {
 		slog.Error("TUI exited with error", "error", err)
 		os.Exit(1)
@@ -145,6 +149,9 @@ func runSingleShot(ctx context.Context, cfg pkg.Config, query string) {
 	if err != nil {
 		slog.Error("build agent for single shot", "error", err)
 		os.Exit(1)
+	}
+	if closer, ok := agent.(io.Closer); ok {
+		defer closer.Close()
 	}
 
 	sessionID := "single-shot-" + strings.ReplaceAll(query[0:min(len(query), 20)], " ", "_")

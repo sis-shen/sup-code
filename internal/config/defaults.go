@@ -19,6 +19,9 @@ const (
 	ConfigKeyMCPServers         = "mcp.servers"
 
 	ConfigKeySkillsAutoLoad     = "skills.auto_load"
+
+	ConfigKeyHooksAuditEnabled     = "hooks.audit_log.enabled"
+	ConfigKeyHooksGitCommitEnabled = "hooks.git_auto_commit.enabled"
 )
 
 // DefaultConfig 默认配置值
@@ -33,6 +36,8 @@ var DefaultConfig = map[string]any{
 	ConfigKeyMemoryUserDir:              "~/.supcode/memory",
 	ConfigKeyMemoryCompressThreshold:    8000,
 	ConfigKeySkillsAutoLoad:             true,
+	ConfigKeyHooksAuditEnabled:          true,
+	ConfigKeyHooksGitCommitEnabled:      false,
 }
 
 // ConfigKeyDefault 默认配置键映射（key -> 默认值）

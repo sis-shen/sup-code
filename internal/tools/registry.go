@@ -4,25 +4,41 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"log"
 	"sort"
 	"sync"
+	"time"
 
 	"github.com/supcode/supcode/pkg"
 )
 
+// defaultHookTimeout 是单个 Hook 执行的最长时间，防止钩子挂死拖垮 Agent 循环。
+const defaultHookTimeout = 30 * time.Second
+
 // Registry implements pkg.ToolRegistry.
 type Registry struct {
-	mu      sync.RWMutex
-	tools   map[string]pkg.Tool
-	hooks   []pkg.ToolHook
-	permEng pkg.PermissionEngine
+	mu          sync.RWMutex
+	tools       map[string]pkg.Tool
+	hooks       []pkg.ToolHook
+	permEng     pkg.PermissionEngine
+	hookTimeout time.Duration
 }
 
 // NewRegistry creates a new ToolRegistry with the given PermissionEngine.
 func NewRegistry(permEng pkg.PermissionEngine) *Registry {
+	return NewRegistryWithHookTimeout(permEng, defaultHookTimeout)
+}
+
+// NewRegistryWithHookTimeout creates a ToolRegistry with a custom per-hook timeout.
+// Primarily used by tests.
+func NewRegistryWithHookTimeout(permEng pkg.PermissionEngine, hookTimeout time.Duration) *Registry {
+	if hookTimeout <= 0 {
+		hookTimeout = defaultHookTimeout
+	}
 	return &Registry{
-		tools:   make(map[string]pkg.Tool),
-		permEng: permEng,
+		tools:       make(map[string]pkg.Tool),
+		permEng:     permEng,
+		hookTimeout: hookTimeout,
 	}
 }
 
@@ -130,7 +146,15 @@ func (r *Registry) Execute(ctx context.Context, name string, params json.RawMess
 
 	currentParams := params
 	for _, hook := range hooks {
-		newParams, err := hook.BeforeTool(ctx, name, currentParams)
+		select {
+		case <-ctx.Done():
+			return pkg.ToolResult{Success: false, Error: ctx.Err().Error()}, ctx.Err()
+		default:
+		}
+
+		hookCtx, cancel := context.WithTimeout(ctx, r.hookTimeout)
+		newParams, err := hook.BeforeTool(hookCtx, name, currentParams)
+		cancel()
 		if err != nil {
 			return pkg.ToolResult{Success: false, Error: fmt.Sprintf("hook %s rejected: %v", hook.Name(), err)}, err
 		}
@@ -140,18 +164,22 @@ func (r *Registry) Execute(ctx context.Context, name string, params json.RawMess
 	}
 
 	result, err := tool.Execute(ctx, currentParams)
-	if err != nil {
-		for _, hook := range hooks {
-			hook.AfterTool(ctx, name, currentParams, result)
-		}
-		return result, err
-	}
 
+	// AfterTool hooks 总是运行；其错误记录日志但不再向外传播。
 	for _, hook := range hooks {
-		hook.AfterTool(ctx, name, currentParams, result)
+		select {
+		case <-ctx.Done():
+			return result, err
+		default:
+		}
+		hookCtx, cancel := context.WithTimeout(ctx, r.hookTimeout)
+		if afterErr := hook.AfterTool(hookCtx, name, currentParams, result); afterErr != nil {
+			log.Printf("[tools] AfterTool hook %s error: %v", hook.Name(), afterErr)
+		}
+		cancel()
 	}
 
-	return result, nil
+	return result, err
 }
 
 // RegisterHook adds a global hook.
@@ -188,6 +216,18 @@ func (r *Registry) UnregisterHook(hookName string) error {
 		}
 	}
 	return fmt.Errorf("hook not found: %s", hookName)
+}
+
+// ListHookNames returns the names of all registered hooks.
+func (r *Registry) ListHookNames() []string {
+	r.mu.RLock()
+	defer r.mu.RUnlock()
+
+	names := make([]string, len(r.hooks))
+	for i, h := range r.hooks {
+		names[i] = h.Name()
+	}
+	return names
 }
 
 var _ pkg.ToolRegistry = (*Registry)(nil)

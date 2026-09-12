@@ -2,6 +2,7 @@ package agent
 
 import (
     "context"
+    "encoding/json"
     "fmt"
     "log"
     "strings"
@@ -66,6 +67,24 @@ func NewAgent(cfg AgentConfig) (*Agent, error) {
     agent.planner = NewPlanner(cfg.LLMClient)
     agent.toolSelector = NewToolSelector(cfg.LLMClient)
     return agent, nil
+}
+
+// ListTools 返回当前工具池中所有已注册工具名。
+// 用于诊断命令与集成测试，不参与主循环逻辑。
+func (a *Agent) ListTools() []string {
+    return a.toolRegistry.List()
+}
+
+// ListHooks 返回当前工具池中所有已注册钩子名。
+// 用于诊断命令与集成测试，不参与主循环逻辑。
+func (a *Agent) ListHooks() []string {
+    return a.toolRegistry.ListHookNames()
+}
+
+// ExecuteTool 直接通过工具池执行一个工具，绕过 Plan/Select 流程。
+// 用于诊断命令与集成测试；生产 Agent.Run 不使用此方法。
+func (a *Agent) ExecuteTool(ctx context.Context, name string, params json.RawMessage) (pkg.ToolResult, error) {
+    return a.toolRegistry.Execute(ctx, name, params)
 }
 
 // Run executes a complete Agent loop for the given input.

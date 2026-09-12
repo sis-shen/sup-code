@@ -45,6 +45,7 @@ type MockToolRegistry struct {
     ExecuteFunc       func(ctx context.Context, name string, params json.RawMessage) (pkg.ToolResult, error)
     RegisterHookFunc  func(hook pkg.ToolHook) error
     UnregisterHookFunc func(hookName string) error
+    ListHookNamesFunc func() []string
 }
 
 func (m *MockToolRegistry) Register(tool pkg.Tool) error {
@@ -77,6 +78,10 @@ func (m *MockToolRegistry) RegisterHook(hook pkg.ToolHook) error {
 }
 func (m *MockToolRegistry) UnregisterHook(hookName string) error {
     if m.UnregisterHookFunc != nil { return m.UnregisterHookFunc(hookName) }
+    return nil
+}
+func (m *MockToolRegistry) ListHookNames() []string {
+    if m.ListHookNamesFunc != nil { return m.ListHookNamesFunc() }
     return nil
 }
 

@@ -218,3 +218,55 @@ func TestAllSettings(t *testing.T) {
 		t.Errorf("AllSettings()[\"flat_key\"] = %v, want %q", all["flat_key"], "flat_value")
 	}
 }
+
+func TestManager_UnmarshalKey_MCPServers(t *testing.T) {
+	m := NewManager()
+	if err := m.Set(ConfigKeyMCPServers, []map[string]any{
+		{
+			"name":      "filesystem",
+			"transport": "stdio",
+			"command":   "npx",
+			"args":      []string{"-y", "@modelcontextprotocol/server-filesystem", "./mcp-test"},
+			"env":       map[string]string{"FOO": "bar"},
+		},
+		{
+			"name":      "remote",
+			"transport": "sse",
+			"command":   "http://127.0.0.1:9999/sse",
+		},
+	}); err != nil {
+		t.Fatalf("Set() failed: %v", err)
+	}
+
+	var servers []pkg.MCPServerConfig
+	if err := m.UnmarshalKey(ConfigKeyMCPServers, &servers); err != nil {
+		t.Fatalf("UnmarshalKey() failed: %v", err)
+	}
+
+	if len(servers) != 2 {
+		t.Fatalf("got %d servers, want 2", len(servers))
+	}
+	if servers[0].Name != "filesystem" || servers[0].Transport != "stdio" {
+		t.Errorf("servers[0] = %+v, want filesystem/stdio", servers[0])
+	}
+	if len(servers[0].Args) != 3 || servers[0].Args[1] != "@modelcontextprotocol/server-filesystem" {
+		t.Errorf("servers[0].Args = %v, unexpected", servers[0].Args)
+	}
+	if servers[0].Env["FOO"] != "bar" {
+		t.Errorf("servers[0].Env = %v, want FOO=bar", servers[0].Env)
+	}
+	if servers[1].Name != "remote" || servers[1].Transport != "sse" {
+		t.Errorf("servers[1] = %+v, want remote/sse", servers[1])
+	}
+}
+
+func TestManager_UnmarshalKey_MissingKey(t *testing.T) {
+	m := NewManager()
+	var servers []pkg.MCPServerConfig
+	if err := m.UnmarshalKey(ConfigKeyMCPServers, &servers); err != nil {
+		t.Fatalf("UnmarshalKey() on missing key should not error, got: %v", err)
+	}
+	if len(servers) != 0 {
+		t.Errorf("got %d servers for missing key, want 0", len(servers))
+	}
+}

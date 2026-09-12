@@ -49,6 +49,7 @@ func (r *mockRegistry) ListSchemas() []pkg.ToolSchema { return nil }
 func (r *mockRegistry) Execute(ctx context.Context, name string, params json.RawMessage) (pkg.ToolResult, error) { return pkg.ToolResult{}, nil }
 func (r *mockRegistry) RegisterHook(hook pkg.ToolHook) error   { return nil }
 func (r *mockRegistry) UnregisterHook(hookName string) error   { return nil }
+func (r *mockRegistry) ListHookNames() []string                { return nil }
 
 func TestBridge_New(t *testing.T) {
 	client := NewClient()

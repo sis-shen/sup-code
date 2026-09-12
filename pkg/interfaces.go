@@ -79,6 +79,15 @@ type Agent interface {
 
 	// GetSession 获取当前会话状态
 	GetSession(ctx context.Context, sessionID string) (*Session, error)
+
+	// ListTools 返回当前工具池中所有已注册工具名（诊断用）
+	ListTools() []string
+
+	// ListHooks 返回当前工具池中所有已注册钩子名（诊断用）
+	ListHooks() []string
+
+	// ExecuteTool 直接通过工具池执行一个工具，绕过 Plan/Select 流程（诊断/测试用）
+	ExecuteTool(ctx context.Context, name string, params json.RawMessage) (ToolResult, error)
 }
 
 // LLMClient 大语言模型客户端抽象
@@ -178,6 +187,9 @@ type ToolRegistry interface {
 
 	// UnregisterHook 移除一个钩子
 	UnregisterHook(hookName string) error
+
+	// ListHookNames 列出所有已注册钩子的名称
+	ListHookNames() []string
 }
 
 // ToolHook 工具钩子
@@ -347,4 +359,8 @@ type Config interface {
 
 	// AllSettings 返回所有配置的 map
 	AllSettings() map[string]any
+
+	// UnmarshalKey 将指定 key 下的配置解析到 out
+	// 用于列表/结构体类配置（如 mcp.servers）
+	UnmarshalKey(key string, out any) error
 }

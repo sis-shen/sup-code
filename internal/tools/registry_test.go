@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -207,6 +208,99 @@ func TestRegistry_ContextCancellation(t *testing.T) {
 
 	_, err := r.Execute(ctx, "slow_tool", json.RawMessage(`{}`))
 	require.Error(t, err)
+}
+
+func TestRegistry_Execute_BeforeToolHook_TimesOut(t *testing.T) {
+	r := NewRegistryWithHookTimeout(nil, 50*time.Millisecond)
+
+	hook := &MockToolHook{
+		NameFunc: func() string { return "slow_hook" },
+		BeforeToolFunc: func(ctx context.Context, toolName string, params json.RawMessage) (json.RawMessage, error) {
+			<-ctx.Done() // 模拟挂死的钩子
+			return nil, ctx.Err()
+		},
+	}
+	_ = r.RegisterHook(hook)
+
+	executed := false
+	_ = r.Register(&MockTool{
+		NameFunc: func() string { return "test_tool" },
+		ExecuteFunc: func(ctx context.Context, params json.RawMessage) (pkg.ToolResult, error) {
+			executed = true
+			return pkg.ToolResult{Success: true}, nil
+		},
+	})
+
+	done := make(chan struct{})
+	var execErr error
+	go func() {
+		_, execErr = r.Execute(context.Background(), "test_tool", json.RawMessage(`{}`))
+		close(done)
+	}()
+
+	select {
+	case <-done:
+	case <-time.After(2 * time.Second):
+		t.Fatal("Execute blocked on a hung hook; per-hook timeout not enforced")
+	}
+	require.Error(t, execErr)
+	assert.False(t, executed, "tool must not run when its BeforeTool hook times out")
+}
+
+func TestRegistry_Execute_ContextCancelled_DuringHookChain(t *testing.T) {
+	r := NewRegistry(nil)
+
+	hookCalled := false
+	_ = r.RegisterHook(&MockToolHook{
+		NameFunc: func() string { return "h" },
+		BeforeToolFunc: func(ctx context.Context, toolName string, params json.RawMessage) (json.RawMessage, error) {
+			hookCalled = true
+			return nil, nil
+		},
+	})
+
+	executed := false
+	_ = r.Register(&MockTool{
+		NameFunc: func() string { return "test_tool" },
+		ExecuteFunc: func(ctx context.Context, params json.RawMessage) (pkg.ToolResult, error) {
+			executed = true
+			return pkg.ToolResult{Success: true}, nil
+		},
+	})
+
+	ctx, cancel := context.WithCancel(context.Background())
+	cancel()
+
+	_, err := r.Execute(ctx, "test_tool", json.RawMessage(`{}`))
+	require.Error(t, err)
+	assert.ErrorIs(t, err, context.Canceled)
+	assert.False(t, hookCalled, "hook chain should abort on cancelled context")
+	assert.False(t, executed, "tool must not run on cancelled context")
+}
+
+func TestRegistry_Execute_AfterToolHookError_DoesNotAffectResult(t *testing.T) {
+	r := NewRegistry(nil)
+	_ = r.RegisterHook(&MockToolHook{
+		NameFunc: func() string { return "bad_after" },
+		AfterToolFunc: func(ctx context.Context, toolName string, params json.RawMessage, result pkg.ToolResult) error {
+			return errors.New("after hook boom")
+		},
+	})
+	_ = r.Register(&MockTool{
+		NameFunc: func() string { return "test_tool" },
+		ExecuteFunc: func(ctx context.Context, params json.RawMessage) (pkg.ToolResult, error) {
+			return pkg.ToolResult{Success: true, Data: json.RawMessage(`{"ok":true}`)}, nil
+		},
+	})
+
+	result, err := r.Execute(context.Background(), "test_tool", json.RawMessage(`{}`))
+	require.NoError(t, err, "AfterTool hook errors must not propagate to the caller")
+	assert.True(t, result.Success)
+}
+
+func TestNewRegistryWithHookTimeout_DefaultOnNonPositive(t *testing.T) {
+	r := NewRegistryWithHookTimeout(nil, 0)
+	assert.Equal(t, defaultHookTimeout, r.hookTimeout)
 }
 
 type MockPermissionEngine struct {

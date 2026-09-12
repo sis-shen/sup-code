@@ -30,3 +30,21 @@ go.work.sum
 # Editor/IDE
 # .idea/
 # .vscode/
+
+.gocache/
+
+# Local secrets and task inputs (contains API keys, never commit)
+INPUT.md
+.gitconfig
+
+# Ad-hoc coverage artifacts
+cli_cov
+cover
+cover_agent
+coverage
+permission_cov
+tmp_cov
+tmp_cover
+tui_cov
+tui_cover
+worktree_cov
