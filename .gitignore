@@ -48,3 +48,9 @@ tmp_cover
 tui_cov
 tui_cover
 worktree_cov
+
+# Local scratch / pre-existing untracked files
+SMOKE.md
+tasks/
+tests/fixturess/
+}
