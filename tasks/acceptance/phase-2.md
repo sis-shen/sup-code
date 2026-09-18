@@ -1,8 +1,8 @@
 # Phase 2 — 叶子插件化 验收报告（v2.0.0-alpha.2）
 
-> 状态：**PASSED（本地门禁）· CI 待验证**
+> 状态：**PASSED（本地门禁 + CI 全绿 + 已发布）**
 > 执行 Skill：`harness-phase-2-leaf-plugins`
-> 分支：`phase/2-plugins`
+> 分支：`phase/2-plugins`（PR #3）
 > 生成时间：2026-09-18
 > 契约：`docs/adr/ADR-0002-plugin-contract.md`
 
@@ -34,7 +34,7 @@
 | G5 架构 | `bash scripts/check_arch.sh` | ✅ PASS（规则 11 无跨插件 import） |
 | G6 Skill | `bash scripts/check_skills.sh` | ✅ validated 11 |
 | G7 文档/任务 | `bash scripts/check_task_checkboxes.sh` | ✅ OK |
-| G8/CI | PR 门禁 | ⏳ 待推送验证 |
+| G8/CI | PR #3 required checks | ✅ 全绿（lint/build×3/test/arch/skills/diff-coverage/phase-gate） |
 
 ## 3. 验收标准（DoD）
 
@@ -66,6 +66,6 @@
 
 ## 6. 结论
 
-- 状态：**PASSED（本地）· PENDING CI**
-- 推进条件：CI 全绿后合并 `main` 并打 tag `v2.0.0-alpha.2`。
+- 状态：**PASSED（本地 + CI + 发布）**
+- 已合并：PR #3 squash → `main`（`9234ce3`）；tag `v2.0.0-alpha.2`；Release：[v2.0.0-alpha.2](https://github.com/sis-shen/sup-code/releases/tag/v2.0.0-alpha.2)（预发布，多平台产物）。
 - 签署：opencode Phase 2 编排 Agent + 8 子 Agent（2026-09-18）
