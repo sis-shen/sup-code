@@ -22,14 +22,23 @@ type Plugin struct {
 	Apply func(ctx *Context) error
 }
 
+// ManifestEvent declares an event a plugin listens to or emits. Mode is one of
+// emit/waterfall/parallel/serial/bail.
+type ManifestEvent struct {
+	Name string `json:"name"`
+	Mode string `json:"mode,omitempty"`
+}
+
 // Manifest is the serializable description of a plugin (sup.plugin.json). It
 // mirrors the Cordis plugin declaration so that external manifests can be
 // mapped onto Plugin values.
 type Manifest struct {
-	Name        string   `json:"name"`
-	Version     string   `json:"version,omitempty"`
-	Description string   `json:"description,omitempty"`
-	Inject      []string `json:"inject,omitempty"`
-	Provides    []string `json:"provides,omitempty"`
-	Entry       string   `json:"entry,omitempty"`
+	Name        string          `json:"name"`
+	Version     string          `json:"version,omitempty"`
+	Description string          `json:"description,omitempty"`
+	Inject      []string        `json:"inject,omitempty"`
+	Provides    []string        `json:"provides,omitempty"`
+	Events      []ManifestEvent `json:"events,omitempty"`
+	Config      map[string]any  `json:"config,omitempty"`
+	Entry       string          `json:"entry,omitempty"`
 }
