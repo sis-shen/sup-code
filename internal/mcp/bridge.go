@@ -54,7 +54,7 @@ func (b *Bridge) RegisterAllTools(ctx context.Context) error {
 type MCPToolAdapter struct {
 	serverName string
 	toolSchema pkg.ToolSchema
-	client   pkg.MCPClient
+	client     pkg.MCPClient
 }
 
 func (a *MCPToolAdapter) Name() string {
@@ -78,5 +78,3 @@ var _ pkg.Tool = (*MCPToolAdapter)(nil)
 
 // suppress unused import warning
 var _ = fmt.Sprintf
-
-

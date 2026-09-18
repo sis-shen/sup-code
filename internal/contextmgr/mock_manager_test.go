@@ -8,13 +8,13 @@ import (
 
 // MockContextManager implements pkg.ContextManager for testing.
 type MockContextManager struct {
-	BuildContextFunc    func(ctx context.Context, sessionID string) (string, []pkg.Message, error)
-	AppendMessageFunc   func(ctx context.Context, sessionID string, msg pkg.Message) error
-	TokenCountFunc      func(ctx context.Context, sessionID string) (int, error)
-	ShouldCompressFunc  func(ctx context.Context, sessionID string) (bool, error)
-	CompressFunc        func(ctx context.Context, sessionID string) error
-	GetMemoryCardsFunc  func(ctx context.Context, sessionID string) ([]pkg.MemoryCard, error)
-	ClearFunc           func(ctx context.Context, sessionID string) error
+	BuildContextFunc   func(ctx context.Context, sessionID string) (string, []pkg.Message, error)
+	AppendMessageFunc  func(ctx context.Context, sessionID string, msg pkg.Message) error
+	TokenCountFunc     func(ctx context.Context, sessionID string) (int, error)
+	ShouldCompressFunc func(ctx context.Context, sessionID string) (bool, error)
+	CompressFunc       func(ctx context.Context, sessionID string) error
+	GetMemoryCardsFunc func(ctx context.Context, sessionID string) ([]pkg.MemoryCard, error)
+	ClearFunc          func(ctx context.Context, sessionID string) error
 }
 
 func (m *MockContextManager) BuildContext(ctx context.Context, sessionID string) (string, []pkg.Message, error) {

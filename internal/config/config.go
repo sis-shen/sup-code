@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/spf13/viper"
+
 	"github.com/supcode/supcode/pkg"
 )
 
@@ -95,9 +96,9 @@ func (m *Manager) Load() error {
 		}
 	}
 
- 	// 5. API key validation is deferred to Agent layer.
- 	// Config must remain loadable without an API key so that
- 	// subcommands like "config" and "skill" work offline.
+	// 5. API key validation is deferred to Agent layer.
+	// Config must remain loadable without an API key so that
+	// subcommands like "config" and "skill" work offline.
 	return nil
 }
 

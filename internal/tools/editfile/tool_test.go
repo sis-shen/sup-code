@@ -1,4 +1,4 @@
-﻿package editfile
+package editfile
 
 import (
 	"context"
@@ -114,7 +114,6 @@ func TestTool_EditFile_JSONSchemaRequiredFields(t *testing.T) {
 	assert.Contains(t, required, "old_string")
 	assert.Contains(t, required, "new_string")
 }
-
 
 // ─── task2 boundary: old_string with regex special chars ─────────
 

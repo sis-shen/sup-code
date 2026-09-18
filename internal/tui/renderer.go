@@ -1,4 +1,5 @@
 package tui
+
 import (
 	"fmt"
 	"strings"

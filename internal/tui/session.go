@@ -2,7 +2,6 @@ package tui
 
 import (
 	"context"
-	"database/sql"
 	"encoding/json"
 	"fmt"
 	"log/slog"
@@ -12,6 +11,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+
 	"github.com/supcode/supcode/pkg"
 )
 
@@ -38,11 +38,10 @@ type storeFile struct {
 }
 
 type SessionManager struct {
-	mu       sync.RWMutex
-	cache    map[string]*cacheEntry
-	maxHot   int
-	dbPath   string
-	sqliteDB *sql.DB
+	mu     sync.RWMutex
+	cache  map[string]*cacheEntry
+	maxHot int
+	dbPath string
 }
 
 func NewSessionManager(dbPath string) (*SessionManager, error) {
@@ -84,13 +83,6 @@ func (sm *SessionManager) loadFromDisk() error {
 		sm.cache[sd.ID] = &cacheEntry{session: s, dirty: false}
 	}
 	return nil
-}
-
-func (sm *SessionManager) saveToDisk() error {
-	sm.mu.RLock()
-	sessions := sm.buildSessionData()
-	sm.mu.RUnlock()
-	return sm.writeStore(storeFile{Sessions: sessions})
 }
 
 func (sm *SessionManager) saveToDiskLocked() error {
@@ -234,7 +226,9 @@ func (sm *SessionManager) Close(ctx context.Context, sid string) error {
 	}
 	// Persist dirty data before closing
 	if e, ok := sm.cache[sid]; ok && e.dirty {
-		sm.saveToDiskLocked()
+		if err := sm.saveToDiskLocked(); err != nil {
+			slog.Error("failed to save sessions", "error", err)
+		}
 	}
 	delete(sm.cache, sid)
 	return nil
@@ -266,7 +260,9 @@ func (sm *SessionManager) evictIfNeeded() {
 	}
 	if oldestID != "" {
 		if _, ok := sm.cache[oldestID]; ok {
-			sm.saveToDiskLocked()
+			if err := sm.saveToDiskLocked(); err != nil {
+				slog.Error("failed to save sessions", "error", err)
+			}
 			delete(sm.cache, oldestID)
 		}
 	}

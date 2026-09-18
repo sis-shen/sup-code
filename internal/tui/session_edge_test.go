@@ -8,6 +8,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
 	"github.com/supcode/supcode/pkg"
 )
 
@@ -30,7 +31,7 @@ func TestSessionSaveLoad(t *testing.T) {
 	require.NoError(t, err)
 	assert.Equal(t, "Save Test", got.Title)
 	assert.Len(t, got.Messages, 1)
-	os.Remove(dbPath)
+	_ = os.Remove(dbPath)
 }
 
 func TestSessionDBPath(t *testing.T) {
@@ -38,7 +39,7 @@ func TestSessionDBPath(t *testing.T) {
 	sm, err := NewSessionManager(dbPath)
 	require.NoError(t, err)
 	assert.Equal(t, dbPath, sm.DBPath())
-	os.Remove(dbPath)
+	_ = os.Remove(dbPath)
 }
 
 func TestSessionAppendMessageToNonexistent(t *testing.T) {
@@ -48,7 +49,7 @@ func TestSessionAppendMessageToNonexistent(t *testing.T) {
 	ctx := context.Background()
 	err = sm.AppendMessage(ctx, "nonexistent-id", pkg.Message{Role: pkg.RoleUser, Content: "test"})
 	assert.Error(t, err)
-	os.Remove(dbPath)
+	_ = os.Remove(dbPath)
 }
 
 func TestSessionSetStateNonexistent(t *testing.T) {
@@ -58,7 +59,7 @@ func TestSessionSetStateNonexistent(t *testing.T) {
 	ctx := context.Background()
 	err = sm.SetState(ctx, "nonexistent", pkg.StatePlanning)
 	assert.Error(t, err)
-	os.Remove(dbPath)
+	_ = os.Remove(dbPath)
 }
 
 func TestSessionSetPlanNonexistent(t *testing.T) {
@@ -68,7 +69,7 @@ func TestSessionSetPlanNonexistent(t *testing.T) {
 	ctx := context.Background()
 	err = sm.SetPlan(ctx, "nonexistent", pkg.Plan{Goal: "test"})
 	assert.Error(t, err)
-	os.Remove(dbPath)
+	_ = os.Remove(dbPath)
 }
 
 func TestSessionCloseNonexistent(t *testing.T) {
@@ -78,7 +79,7 @@ func TestSessionCloseNonexistent(t *testing.T) {
 	ctx := context.Background()
 	err = sm.Close(ctx, "nonexistent")
 	assert.Error(t, err)
-	os.Remove(dbPath)
+	_ = os.Remove(dbPath)
 }
 
 func TestListEmpty(t *testing.T) {
@@ -89,7 +90,7 @@ func TestListEmpty(t *testing.T) {
 	sessions, err := sm.List(ctx)
 	require.NoError(t, err)
 	assert.Empty(t, sessions)
-	os.Remove(dbPath)
+	_ = os.Remove(dbPath)
 }
 
 func TestSQLitePersistence(t *testing.T) {
@@ -111,5 +112,5 @@ func TestSQLitePersistence(t *testing.T) {
 	require.NoError(t, err)
 	assert.Equal(t, "Persist Test", got.Title)
 	assert.Len(t, got.Messages, 1)
-	os.Remove(dbPath)
+	_ = os.Remove(dbPath)
 }

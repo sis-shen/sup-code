@@ -19,10 +19,10 @@ func TestInstallSkillViaInstaller(t *testing.T) {
 	target := t.TempDir()
 
 	skillDir := filepath.Join(src, "myskill")
-	os.MkdirAll(filepath.Join(skillDir, "prompts"), 0755)
+	require.NoError(t, os.MkdirAll(filepath.Join(skillDir, "prompts"), 0755))
 	manifest := `{"name":"myskill","version":"1.0.0","description":"a skill"}`
-	os.WriteFile(filepath.Join(skillDir, "skill.json"), []byte(manifest), 0644)
-	os.WriteFile(filepath.Join(skillDir, "prompts", "system.md"), []byte("prompt"), 0644)
+	require.NoError(t, os.WriteFile(filepath.Join(skillDir, "skill.json"), []byte(manifest), 0644))
+	require.NoError(t, os.WriteFile(filepath.Join(skillDir, "prompts", "system.md"), []byte("prompt"), 0644))
 
 	inst := NewInstaller(target)
 	err := inst.InstallFromLocal(skillDir)

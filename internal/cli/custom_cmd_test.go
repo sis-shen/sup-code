@@ -1,4 +1,4 @@
-﻿package cli
+package cli
 
 import (
 	"os"
@@ -12,9 +12,12 @@ func TestSaveAndLoadCustomCommands(t *testing.T) {
 	tmpHome := t.TempDir()
 	oldHome := os.Getenv("HOME")
 	oldProfile := os.Getenv("USERPROFILE")
-	os.Setenv("HOME", tmpHome)
-	os.Setenv("USERPROFILE", tmpHome)
-	defer func() { os.Setenv("HOME", oldHome); os.Setenv("USERPROFILE", oldProfile) }()
+	require.NoError(t, os.Setenv("HOME", tmpHome))
+	require.NoError(t, os.Setenv("USERPROFILE", tmpHome))
+	defer func() {
+		require.NoError(t, os.Setenv("HOME", oldHome))
+		require.NoError(t, os.Setenv("USERPROFILE", oldProfile))
+	}()
 
 	cmds := []CustomCommand{{Name: "review", Description: "Code review", Prompt: "Review the code", Tools: []string{"bash", "readfile"}}, {Name: "deploy", Description: "Deploy", Prompt: "Deploy to staging"}}
 	err := SaveCustomCommands(cmds)
@@ -28,8 +31,8 @@ func TestSaveAndLoadCustomCommands(t *testing.T) {
 func TestLoadCustomCommands_NotFound(t *testing.T) {
 	tmpHome := t.TempDir()
 	oldHome := os.Getenv("HOME")
-	os.Setenv("HOME", tmpHome)
-	defer os.Setenv("HOME", oldHome)
+	require.NoError(t, os.Setenv("HOME", tmpHome))
+	defer func() { require.NoError(t, os.Setenv("HOME", oldHome)) }()
 	cmds, err := LoadCustomCommands()
 	require.NoError(t, err)
 	assert.Len(t, cmds, 0, "should be nil or empty when commands file does not exist")
@@ -38,8 +41,8 @@ func TestLoadCustomCommands_NotFound(t *testing.T) {
 func TestSaveCustomCommands_Empty(t *testing.T) {
 	tmpHome := t.TempDir()
 	oldHome := os.Getenv("HOME")
-	os.Setenv("HOME", tmpHome)
-	defer os.Setenv("HOME", oldHome)
+	require.NoError(t, os.Setenv("HOME", tmpHome))
+	defer func() { require.NoError(t, os.Setenv("HOME", oldHome)) }()
 	err := SaveCustomCommands([]CustomCommand{})
 	require.NoError(t, err)
 	loaded, err := LoadCustomCommands()

@@ -101,7 +101,7 @@ func (p *EmbeddingProvider) BatchGenerate(ctx context.Context, texts []string) (
 	if err != nil {
 		return nil, fmt.Errorf("embedding api: %w", err)
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	raw, err := io.ReadAll(resp.Body)
 	if err != nil {

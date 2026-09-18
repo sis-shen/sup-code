@@ -1,7 +1,6 @@
 package mcp
 
 import (
-	"github.com/supcode/supcode/pkg"
 	"bufio"
 	"context"
 	"encoding/json"
@@ -10,6 +9,8 @@ import (
 	"os/exec"
 	"sync"
 	"sync/atomic"
+
+	"github.com/supcode/supcode/pkg"
 )
 
 // stdioTransport implements Transport via a child process stdin/stdout.
@@ -24,9 +25,9 @@ type stdioTransport struct {
 	pending map[int]chan jsonRPCResponse
 	closed  bool
 
-	retries   int
+	retries    int
 	maxRetries int
-	config    pkg.MCPServerConfig
+	config     pkg.MCPServerConfig
 }
 
 // newStdioTransport starts a new stdio transport.
@@ -184,11 +185,10 @@ func (t *stdioTransport) Close() error {
 	t.mu.Unlock()
 
 	if t.cmd != nil && t.cmd.Process != nil {
-		t.cmd.Process.Kill()
+		_ = t.cmd.Process.Kill()
 	}
 	return nil
 }
 
 // compile-time check
 var _ Transport = (*stdioTransport)(nil)
-

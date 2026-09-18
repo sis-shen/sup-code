@@ -10,6 +10,7 @@ import (
 	"github.com/charmbracelet/bubbles/viewport"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
+
 	"github.com/supcode/supcode/pkg"
 )
 
@@ -44,11 +45,11 @@ type ErrorMsg struct {
 
 var (
 	styleUser = lipgloss.NewStyle().
-			Foreground(lipgloss.Color("39")).  // blue
+			Foreground(lipgloss.Color("39")). // blue
 			Bold(true)
 
 	styleAssistant = lipgloss.NewStyle().
-			Foreground(lipgloss.Color("83")).  // green
+			Foreground(lipgloss.Color("83")). // green
 			Bold(true)
 
 	styleSystem = lipgloss.NewStyle().
@@ -67,9 +68,6 @@ var (
 	styleThinking = lipgloss.NewStyle().
 			Foreground(lipgloss.Color("141")). // purple
 			Italic(true)
-
-	styleHelp = lipgloss.NewStyle().
-			Foreground(lipgloss.Color("244"))
 )
 
 // ─── View modes ────────────────────────────────────────────────
@@ -86,11 +84,11 @@ const (
 // Model 是 Bubble Tea 的主模型
 type Model struct {
 	// 核心组件
-	service    *Service
-	renderer   *Renderer
-	spinner    spinner.Model
-	viewport   viewport.Model
-	input      textinput.Model
+	service  *Service
+	renderer *Renderer
+	spinner  spinner.Model
+	viewport viewport.Model
+	input    textinput.Model
 
 	// 会话状态
 	sessionID  string
@@ -98,10 +96,10 @@ type Model struct {
 	currentMsg strings.Builder
 
 	// 布局状态
-	viewMode   viewMode
-	width      int
-	height     int
-	ready      bool
+	viewMode viewMode
+	width    int
+	height   int
+	ready    bool
 
 	// 确认对话框
 	confirmPrompt pkg.ConfirmPrompt
@@ -226,8 +224,8 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return m, nil
 
 	case spinner.TickMsg:
-	m.spinner, _ = m.spinner.Update(msg)
-	return m, nil
+		m.spinner, _ = m.spinner.Update(msg)
+		return m, nil
 
 	default:
 		return m, nil

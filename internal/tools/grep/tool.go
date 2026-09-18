@@ -1,4 +1,5 @@
 package grep
+
 import (
 	"bytes"
 	"context"
@@ -10,22 +11,26 @@ import (
 	"runtime"
 	"strings"
 	"sync"
+
 	"github.com/supcode/supcode/pkg"
 )
+
 const (
 	defaultMaxMatches = 1000
 	maxFileSize       = 100 * 1024 * 1024 // 100MB - skip binary-like large files
 )
+
 // GrepParams is the parsed parameters for Grep.
 type GrepParams struct {
-	Pattern      string `json:"pattern"`
-	Path         string `json:"path"`
-	PatternIsRegex *bool `json:"pattern_is_regex,omitempty"`
-	ContextLines *int   `json:"context_lines,omitempty"`
+	Pattern        string  `json:"pattern"`
+	Path           string  `json:"path"`
+	PatternIsRegex *bool   `json:"pattern_is_regex,omitempty"`
+	ContextLines   *int    `json:"context_lines,omitempty"`
 	IncludePattern *string `json:"include_pattern,omitempty"`
 	ExcludePattern *string `json:"exclude_pattern,omitempty"`
-	MaxMatches   *int   `json:"max_matches,omitempty"`
+	MaxMatches     *int    `json:"max_matches,omitempty"`
 }
+
 var jsonSchema = json.RawMessage(`{
 	"type": "object",
 	"required": ["pattern", "path"],
@@ -65,6 +70,7 @@ var jsonSchema = json.RawMessage(`{
 		}
 	}
 }`)
+
 // MatchResult represents a single grep match.
 type MatchResult struct {
 	File    string   `json:"file"`
@@ -73,8 +79,10 @@ type MatchResult struct {
 	Before  []string `json:"before,omitempty"`
 	After   []string `json:"after,omitempty"`
 }
+
 // Tool implements pkg.Tool for searching file contents with regex.
 type Tool struct{}
+
 func (t *Tool) Name() string { return "grep" }
 func (t *Tool) Description() string {
 	return "Search file contents using regex patterns with concurrent scanning."
@@ -86,10 +94,7 @@ func (t *Tool) Schema() pkg.ToolSchema {
 		Parameters:  jsonSchema,
 	}
 }
-// Executor holds dependencies for testing
-type Executor struct {
-	fileWalker func(ctx context.Context, path string, include, exclude string, maxMatches int) ([]string, error)
-}
+
 func (t *Tool) Execute(ctx context.Context, params json.RawMessage) (pkg.ToolResult, error) {
 	var gp GrepParams
 	if err := json.Unmarshal(params, &gp); err != nil {
@@ -161,7 +166,7 @@ func (t *Tool) Execute(ctx context.Context, params json.RawMessage) (pkg.ToolRes
 		if gp.ExcludePattern != nil {
 			excludePattern = *gp.ExcludePattern
 		}
-		files, err = collectFiles(ctx, gp.Path, includePattern, excludePattern, maxMatches)
+		files, err = collectFiles(ctx, gp.Path, includePattern, excludePattern)
 		if err != nil {
 			return pkg.ToolResult{
 				Success: false,
@@ -186,8 +191,9 @@ func (t *Tool) Execute(ctx context.Context, params json.RawMessage) (pkg.ToolRes
 		Data:    json.RawMessage(data),
 	}, nil
 }
+
 // collectFiles walks a directory and returns matching files.
-func collectFiles(ctx context.Context, root, includePattern, excludePattern string, maxMatches int) ([]string, error) {
+func collectFiles(ctx context.Context, root, includePattern, excludePattern string) ([]string, error) {
 	var files []string
 	err := filepath.Walk(root, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
@@ -228,6 +234,7 @@ func collectFiles(ctx context.Context, root, includePattern, excludePattern stri
 	})
 	return files, err
 }
+
 // isBinaryFile checks if a file looks like a binary.
 func isBinaryFile(info os.FileInfo) bool {
 	ext := strings.ToLower(filepath.Ext(info.Name()))
@@ -243,6 +250,7 @@ func isBinaryFile(info os.FileInfo) bool {
 	}
 	return false
 }
+
 // grepFiles searches files concurrently using a goroutine pool.
 func grepFiles(ctx context.Context, files []string, re *regexp.Regexp, contextLines, maxMatches int) []MatchResult {
 	numWorkers := runtime.NumCPU()
@@ -312,6 +320,7 @@ func grepFiles(ctx context.Context, files []string, re *regexp.Regexp, contextLi
 	}
 	return allResults
 }
+
 // grepFile searches a single file for matches.
 func grepFile(path string, re *regexp.Regexp, contextLines, maxMatches int) ([]MatchResult, error) {
 	data, err := os.ReadFile(path)

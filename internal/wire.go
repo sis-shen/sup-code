@@ -18,14 +18,16 @@ func InitTUI(ctx context.Context, agent pkg.Agent) error {
 	}
 
 	dbDir := filepath.Join(homeDir, ".supcode")
-	os.MkdirAll(dbDir, 0755)
+	if err := os.MkdirAll(dbDir, 0755); err != nil {
+		return err
+	}
 	dbPath := filepath.Join(dbDir, "sessions.db")
 
 	sm, err := tui.NewSessionManager(dbPath)
 	if err != nil {
 		return err
 	}
-	defer sm.CloseAll()
+	defer func() { _ = sm.CloseAll() }()
 
 	session, err := sm.Create(ctx, "Interactive Session")
 	if err != nil {
@@ -36,7 +38,7 @@ func InitTUI(ctx context.Context, agent pkg.Agent) error {
 	if err != nil {
 		return err
 	}
-	defer renderer.Close()
+	defer func() { _ = renderer.Close() }()
 
 	service := tui.NewService(sm)
 	if agent != nil {

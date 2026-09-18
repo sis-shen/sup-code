@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/spf13/cobra"
+
 	"github.com/supcode/supcode/internal/skill"
 )
 
@@ -30,7 +31,9 @@ func skillInstallCmd() *cobra.Command {
 			if err := skill.InstallSkill(source); err != nil {
 				return fmt.Errorf("install skill: %w", err)
 			}
-			fmt.Fprintf(cmd.OutOrStdout(), "Skill installed from: %s\n", source)
+			if _, err := fmt.Fprintf(cmd.OutOrStdout(), "Skill installed from: %s\n", source); err != nil {
+				return err
+			}
 			return nil
 		},
 	}

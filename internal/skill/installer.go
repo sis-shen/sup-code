@@ -37,7 +37,7 @@ func (inst *Installer) InstallFromGit(repoURL string) error {
 	if err != nil {
 		return fmt.Errorf("create temp dir: %w", err)
 	}
-	defer os.RemoveAll(tmpDir)
+	defer func() { _ = os.RemoveAll(tmpDir) }()
 
 	cmd := inst.execCommand("git", "clone", repoURL, tmpDir)
 	if output, err := cmd.CombinedOutput(); err != nil {
@@ -51,7 +51,7 @@ func (inst *Installer) InstallFromNPM(packageName string) error {
 	if err != nil {
 		return fmt.Errorf("create temp dir: %w", err)
 	}
-	defer os.RemoveAll(tmpDir)
+	defer func() { _ = os.RemoveAll(tmpDir) }()
 
 	cmd := inst.execCommand("npm", "pack", packageName, "--pack-destination", tmpDir)
 	if output, err := cmd.CombinedOutput(); err != nil {
@@ -68,7 +68,9 @@ func (inst *Installer) InstallFromNPM(packageName string) error {
 
 	tarPath := filepath.Join(tmpDir, entries[0].Name())
 	extractDir := filepath.Join(tmpDir, "extracted")
-	os.MkdirAll(extractDir, 0755)
+	if err := os.MkdirAll(extractDir, 0755); err != nil {
+		return fmt.Errorf("create extract dir: %w", err)
+	}
 
 	cmd = inst.execCommand("tar", "-xzf", tarPath, "-C", extractDir)
 	if output, err := cmd.CombinedOutput(); err != nil {

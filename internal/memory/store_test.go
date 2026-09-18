@@ -15,14 +15,14 @@ func tempDB(t *testing.T) *Store {
 	if err != nil {
 		t.Fatalf("create temp db: %v", err)
 	}
-	f.Close()
+	_ = f.Close()
 	s, err := NewStore(f.Name())
 	if err != nil {
 		t.Fatalf("NewStore: %v", err)
 	}
 	t.Cleanup(func() {
-		s.Close()
-		os.Remove(f.Name())
+		_ = s.Close()
+		_ = os.Remove(f.Name())
 	})
 	return s
 }
@@ -57,8 +57,8 @@ func TestStore_SaveAndSearch_Scoped(t *testing.T) {
 	s := tempDB(t)
 	ctx := context.Background()
 
-	s.Save(ctx, pkg.MemoryEntry{Scope: "project", Category: "task", Content: "task one"})
-	s.Save(ctx, pkg.MemoryEntry{Scope: "user", Category: "preference", Content: "prefer dark mode"})
+	_ = s.Save(ctx, pkg.MemoryEntry{Scope: "project", Category: "task", Content: "task one"})
+	_ = s.Save(ctx, pkg.MemoryEntry{Scope: "user", Category: "preference", Content: "prefer dark mode"})
 
 	// Search with scope
 	results, err := s.Search(ctx, "task", "project", 10)
@@ -84,7 +84,7 @@ func TestStore_SearchLimit(t *testing.T) {
 	ctx := context.Background()
 
 	for i := range 5 {
-		s.Save(ctx, pkg.MemoryEntry{
+		_ = s.Save(ctx, pkg.MemoryEntry{
 			Scope: "project", Category: "note",
 			Content: "entry number " + string(rune('0'+i)),
 		})
@@ -113,9 +113,9 @@ func TestStore_GetByCategory(t *testing.T) {
 	s := tempDB(t)
 	ctx := context.Background()
 
-	s.Save(ctx, pkg.MemoryEntry{Scope: "project", Category: "structure", Content: "layered arch"})
-	s.Save(ctx, pkg.MemoryEntry{Scope: "project", Category: "convention", Content: "use tabs"})
-	s.Save(ctx, pkg.MemoryEntry{Scope: "user", Category: "preference", Content: "vim mode"})
+	_ = s.Save(ctx, pkg.MemoryEntry{Scope: "project", Category: "structure", Content: "layered arch"})
+	_ = s.Save(ctx, pkg.MemoryEntry{Scope: "project", Category: "convention", Content: "use tabs"})
+	_ = s.Save(ctx, pkg.MemoryEntry{Scope: "user", Category: "preference", Content: "vim mode"})
 
 	results, err := s.GetByCategory(ctx, "project", "structure")
 	if err != nil {
@@ -192,8 +192,8 @@ func TestStore_SemanticSearch(t *testing.T) {
 		Content:   "hi",
 		Embedding: []float32{2.0},
 	}
-	s.Save(ctx, entry1)
-	s.Save(ctx, entry2)
+	_ = s.Save(ctx, entry1)
+	_ = s.Save(ctx, entry2)
 
 	results, err := s.Search(ctx, "architecture pattern", "", 10)
 	if err != nil {
@@ -211,7 +211,7 @@ func TestStore_SemanticSearch_Fallback(t *testing.T) {
 	ctx := context.Background()
 
 	// No embedder set -> falls back to LIKE search
-	s.Save(ctx, pkg.MemoryEntry{Scope: "project", Category: "note", Content: "important note"})
+	_ = s.Save(ctx, pkg.MemoryEntry{Scope: "project", Category: "note", Content: "important note"})
 
 	results, err := s.Search(ctx, "important", "", 10)
 	if err != nil {
@@ -228,8 +228,8 @@ func TestStore_ConcurrentSave(t *testing.T) {
 
 	var wg testWaitGroup
 	wg.Add(20)
-	for i := range 20 {
-		go func(i int) {
+	for range 20 {
+		go func() {
 			defer wg.Done()
 			err := s.Save(ctx, pkg.MemoryEntry{
 				Scope:    "project",
@@ -239,7 +239,7 @@ func TestStore_ConcurrentSave(t *testing.T) {
 			if err != nil {
 				t.Errorf("concurrent Save: %v", err)
 			}
-		}(i)
+		}()
 	}
 	wg.Wait()
 

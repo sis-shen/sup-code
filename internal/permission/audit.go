@@ -62,7 +62,9 @@ func NewAuditLogger(dbPath string) (*AuditLogger, error) {
 		return nil, fmt.Errorf("open audit db: %w", err)
 	}
 	if _, err := db.Exec(auditTableDDL); err != nil {
-		db.Close()
+		if closeErr := db.Close(); closeErr != nil {
+			log.Printf("[AUDIT] close db after table creation failure: %v", closeErr)
+		}
 		return nil, fmt.Errorf("create audit table: %w", err)
 	}
 	a := &AuditLogger{db: db, insertCh: make(chan auditRecord, 64)}
@@ -80,7 +82,7 @@ func (a *AuditLogger) batchWriter() {
 		log.Printf("[AUDIT] prepare statement failed: %v", err)
 		return
 	}
-	defer stmt.Close()
+	defer func() { _ = stmt.Close() }()
 
 	for rec := range a.insertCh {
 		params := sanitizeParams(truncate(rec.action.Params, maxParamsLen))
@@ -124,7 +126,7 @@ func (a *AuditLogger) Query(sessionID string, limit int) ([]AuditEntry, error) {
 	if err != nil {
 		return nil, fmt.Errorf("query audit: %w", err)
 	}
-	defer rows.Close()
+	defer func() { _ = rows.Close() }()
 	return scanEntries(rows)
 }
 
@@ -139,7 +141,7 @@ func (a *AuditLogger) QueryByTool(toolName string, limit int) ([]AuditEntry, err
 	if err != nil {
 		return nil, fmt.Errorf("query audit by tool: %w", err)
 	}
-	defer rows.Close()
+	defer func() { _ = rows.Close() }()
 	return scanEntries(rows)
 }
 

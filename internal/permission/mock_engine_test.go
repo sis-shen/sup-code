@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/stretchr/testify/mock"
+
 	"github.com/supcode/supcode/pkg"
 )
 

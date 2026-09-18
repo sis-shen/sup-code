@@ -13,7 +13,7 @@ import (
 
 func TestAgentLoop_ReadFile(t *testing.T) {
 	sessionMgr, toolReg, ctxMgr := setupRealComponents(t)
-	defer sessionMgr.CloseAll()
+	defer func() { require.NoError(t, sessionMgr.CloseAll()) }()
 
 	fp := fixturePathForward(t)
 	mr := mockResponse{
@@ -40,7 +40,7 @@ func TestAgentLoop_ReadFile(t *testing.T) {
 
 func TestAgentLoop_WriteFile(t *testing.T) {
 	sessionMgr, toolReg, ctxMgr := setupRealComponents(t)
-	defer sessionMgr.CloseAll()
+	defer func() { require.NoError(t, sessionMgr.CloseAll()) }()
 
 	// Use forward-slash path to avoid Windows backslash JSON escaping issues
 	tmpDir := strings.ReplaceAll(t.TempDir(), "\\", "/")
@@ -73,7 +73,7 @@ func TestAgentLoop_WriteFile(t *testing.T) {
 
 func TestAgentLoop_MultiStep(t *testing.T) {
 	sessionMgr, toolReg, ctxMgr := setupRealComponents(t)
-	defer sessionMgr.CloseAll()
+	defer func() { require.NoError(t, sessionMgr.CloseAll()) }()
 
 	mr := mockResponse{
 		planContent: `{"goal":"Find TODO comments and read the file","steps":[
@@ -102,7 +102,7 @@ func TestAgentLoop_MultiStep(t *testing.T) {
 
 func TestAgentLoop_PermissionDeny(t *testing.T) {
 	sessionMgr, toolReg, ctxMgr := setupRealComponents(t)
-	defer sessionMgr.CloseAll()
+	defer func() { require.NoError(t, sessionMgr.CloseAll()) }()
 
 	mr := mockResponse{
 		planContent:      `{"goal":"Delete everything","steps":[{"id":"step-1","description":"Run rm -rf command","tool_hint":"bash"}]}`,
@@ -132,7 +132,7 @@ func TestAgentLoop_PermissionDeny(t *testing.T) {
 
 func TestAgentLoop_MultiTurn(t *testing.T) {
 	sessionMgr, toolReg, ctxMgr := setupRealComponents(t)
-	defer sessionMgr.CloseAll()
+	defer func() { require.NoError(t, sessionMgr.CloseAll()) }()
 
 	fp := fixturePathForward(t)
 	mr := mockResponse{
@@ -164,7 +164,7 @@ func TestAgentLoop_MultiTurn(t *testing.T) {
 	_, err = ag.Run(ctx, session.ID, "Read README.md again")
 	require.NoError(t, err)
 
-	_, messages, err = ctxMgr.BuildContext(ctx, session.ID)
+	_, _, err = ctxMgr.BuildContext(ctx, session.ID)
 	require.NoError(t, err)
 
 	// Turn 3
@@ -178,7 +178,7 @@ func TestAgentLoop_MultiTurn(t *testing.T) {
 
 func TestAgentLoop_ToolFailureRetry(t *testing.T) {
 	sessionMgr, toolReg, ctxMgr := setupRealComponents(t)
-	defer sessionMgr.CloseAll()
+	defer func() { require.NoError(t, sessionMgr.CloseAll()) }()
 
 	fp := fixturePathForward(t)
 	mr := mockResponse{

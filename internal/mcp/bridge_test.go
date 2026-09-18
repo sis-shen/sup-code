@@ -1,4 +1,4 @@
-﻿package mcp
+package mcp
 
 import (
 	"context"
@@ -9,6 +9,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
 	"github.com/supcode/supcode/pkg"
 )
 
@@ -25,31 +26,41 @@ func (r *mockRegistry) Register(tool pkg.Tool) error {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 	name := tool.Name()
-	if name == "" { return fmt.Errorf("empty name") }
-	if _, exists := r.tools[name]; exists { return fmt.Errorf("already exists: %s", name) }
+	if name == "" {
+		return fmt.Errorf("empty name")
+	}
+	if _, exists := r.tools[name]; exists {
+		return fmt.Errorf("already exists: %s", name)
+	}
 	r.tools[name] = tool
 	return nil
 }
-func (r *mockRegistry) Unregister(name string) error          { return nil }
+func (r *mockRegistry) Unregister(name string) error { return nil }
 func (r *mockRegistry) Get(name string) (pkg.Tool, error) {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 	t, ok := r.tools[name]
-	if !ok { return nil, fmt.Errorf("not found: %s", name) }
+	if !ok {
+		return nil, fmt.Errorf("not found: %s", name)
+	}
 	return t, nil
 }
 func (r *mockRegistry) List() []string {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 	names := make([]string, 0, len(r.tools))
-	for n := range r.tools { names = append(names, n) }
+	for n := range r.tools {
+		names = append(names, n)
+	}
 	return names
 }
 func (r *mockRegistry) ListSchemas() []pkg.ToolSchema { return nil }
-func (r *mockRegistry) Execute(ctx context.Context, name string, params json.RawMessage) (pkg.ToolResult, error) { return pkg.ToolResult{}, nil }
-func (r *mockRegistry) RegisterHook(hook pkg.ToolHook) error   { return nil }
-func (r *mockRegistry) UnregisterHook(hookName string) error   { return nil }
-func (r *mockRegistry) ListHookNames() []string                { return nil }
+func (r *mockRegistry) Execute(ctx context.Context, name string, params json.RawMessage) (pkg.ToolResult, error) {
+	return pkg.ToolResult{}, nil
+}
+func (r *mockRegistry) RegisterHook(hook pkg.ToolHook) error { return nil }
+func (r *mockRegistry) UnregisterHook(hookName string) error { return nil }
+func (r *mockRegistry) ListHookNames() []string              { return nil }
 
 func TestBridge_New(t *testing.T) {
 	client := NewClient()

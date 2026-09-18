@@ -53,7 +53,7 @@ func (c *Client) Connect(ctx context.Context, config pkg.MCPServerConfig) error 
 	case "stdio", "":
 		transport, err = newStdioTransport(ctx, config, 3)
 	case "sse":
-		transport, err = newSSETransport(ctx, config.Command, nil)
+		transport, err = newSSETransport(ctx, config.Command)
 	default:
 		return fmt.Errorf("unknown transport: %s", config.Transport)
 	}
@@ -69,7 +69,7 @@ func (c *Client) Connect(ctx context.Context, config pkg.MCPServerConfig) error 
 		"capabilities":    map[string]interface{}{},
 	})
 	if err != nil {
-		transport.Close()
+		_ = transport.Close()
 		return fmt.Errorf("initialize failed: %w", err)
 	}
 
@@ -78,7 +78,7 @@ func (c *Client) Connect(ctx context.Context, config pkg.MCPServerConfig) error 
 		ProtocolVersion string `json:"protocolVersion"`
 	}
 	if err := json.Unmarshal(initResult, &initResp); err != nil {
-		transport.Close()
+		_ = transport.Close()
 		return fmt.Errorf("parse initialize response: %w", err)
 	}
 
@@ -88,7 +88,7 @@ func (c *Client) Connect(ctx context.Context, config pkg.MCPServerConfig) error 
 	// Fetch tools list
 	toolsResult, err := conn.sendRequest(ctx, "tools/list", nil)
 	if err != nil {
-		transport.Close()
+		_ = transport.Close()
 		return fmt.Errorf("list tools failed: %w", err)
 	}
 
@@ -96,7 +96,7 @@ func (c *Client) Connect(ctx context.Context, config pkg.MCPServerConfig) error 
 		Tools []pkg.ToolSchema `json:"tools"`
 	}
 	if err := json.Unmarshal(toolsResult, &toolsList); err != nil {
-		transport.Close()
+		_ = transport.Close()
 		return fmt.Errorf("parse tools/list response: %w", err)
 	}
 
@@ -194,7 +194,7 @@ func (c *Client) ExecuteTool(ctx context.Context, serverName string, toolName st
 	}
 
 	result, err := conn.sendRequest(ctx, "tools/call", map[string]interface{}{
-		"name":   toolName,
+		"name":      toolName,
 		"arguments": paramsMap,
 	})
 	if err != nil {

@@ -89,7 +89,7 @@ func TestParseManifestWithAuthor(t *testing.T) {
 func TestLoadManifestFile(t *testing.T) {
 	dir := t.TempDir()
 	path := filepath.Join(dir, "skill.json")
-	os.WriteFile(path, []byte(`{"name": "test", "version": "1.0.0", "description": "test"}`), 0644)
+	require.NoError(t, os.WriteFile(path, []byte(`{"name": "test", "version": "1.0.0", "description": "test"}`), 0644))
 	m, err := LoadManifestFile(path)
 	require.NoError(t, err)
 	assert.Equal(t, "test", m.Name)

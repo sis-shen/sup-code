@@ -10,6 +10,7 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
 	"github.com/supcode/supcode/pkg"
 )
 
@@ -21,7 +22,7 @@ func setupTestModelReady(t *testing.T) *Model {
 	svc := NewService(sm)
 	r, err := NewRenderer()
 	require.NoError(t, err)
-	t.Cleanup(func() { _ = sm.CloseAll(); r.Close(); os.Remove(dbPath) })
+	t.Cleanup(func() { _ = sm.CloseAll(); _ = r.Close(); _ = os.Remove(dbPath) })
 	session, err := sm.Create(context.Background(), "Test")
 	require.NoError(t, err)
 	m := NewModel(svc, r, session.ID)
@@ -38,8 +39,8 @@ func TestModel_View_Initializing(t *testing.T) {
 	svc := NewService(sm)
 	r, err := NewRenderer()
 	require.NoError(t, err)
-	defer r.Close()
-	defer sm.CloseAll()
+	defer func() { _ = r.Close() }()
+	defer func() { _ = sm.CloseAll() }()
 	session, err := sm.Create(context.Background(), "Test")
 	require.NoError(t, err)
 	m := NewModel(svc, r, session.ID)

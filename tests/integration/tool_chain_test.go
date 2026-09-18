@@ -9,6 +9,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
 	"github.com/supcode/supcode/internal/permission"
 	"github.com/supcode/supcode/internal/tools"
 	"github.com/supcode/supcode/internal/tools/bash"

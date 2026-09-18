@@ -8,6 +8,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
 	"github.com/supcode/supcode/internal/tui"
 	"github.com/supcode/supcode/pkg"
 )
@@ -15,7 +16,7 @@ import (
 func TestSession_CreateAndGet(t *testing.T) {
 	sm, err := tui.NewSessionManager(filepath.Join(t.TempDir(), "sessions.json"))
 	require.NoError(t, err)
-	defer sm.CloseAll()
+	defer func() { require.NoError(t, sm.CloseAll()) }()
 
 	ctx := context.Background()
 
@@ -34,7 +35,7 @@ func TestSession_CreateAndGet(t *testing.T) {
 func TestSession_AppendMessage(t *testing.T) {
 	sm, err := tui.NewSessionManager(filepath.Join(t.TempDir(), "sessions.json"))
 	require.NoError(t, err)
-	defer sm.CloseAll()
+	defer func() { require.NoError(t, sm.CloseAll()) }()
 
 	ctx := context.Background()
 	session, err := sm.Create(ctx, "test-msg")
@@ -79,7 +80,7 @@ func TestSession_PersistAndRestore(t *testing.T) {
 
 	sm2, err := tui.NewSessionManager(dbPath)
 	require.NoError(t, err)
-	defer sm2.CloseAll()
+	defer func() { require.NoError(t, sm2.CloseAll()) }()
 
 	restored, err := sm2.Get(ctx, session.ID)
 	require.NoError(t, err)
@@ -91,7 +92,7 @@ func TestSession_PersistAndRestore(t *testing.T) {
 func TestSession_ConcurrentSessions(t *testing.T) {
 	sm, err := tui.NewSessionManager(filepath.Join(t.TempDir(), "sessions.json"))
 	require.NoError(t, err)
-	defer sm.CloseAll()
+	defer func() { require.NoError(t, sm.CloseAll()) }()
 
 	ctx := context.Background()
 	s1, err := sm.Create(ctx, "session-1")
@@ -120,7 +121,7 @@ func TestSession_ConcurrentSessions(t *testing.T) {
 func TestSession_List(t *testing.T) {
 	sm, err := tui.NewSessionManager(filepath.Join(t.TempDir(), "sessions.json"))
 	require.NoError(t, err)
-	defer sm.CloseAll()
+	defer func() { require.NoError(t, sm.CloseAll()) }()
 
 	ctx := context.Background()
 	for i := 0; i < 3; i++ {
@@ -136,7 +137,7 @@ func TestSession_List(t *testing.T) {
 func TestSession_Delete(t *testing.T) {
 	sm, err := tui.NewSessionManager(filepath.Join(t.TempDir(), "sessions.json"))
 	require.NoError(t, err)
-	defer sm.CloseAll()
+	defer func() { require.NoError(t, sm.CloseAll()) }()
 
 	ctx := context.Background()
 	session, err := sm.Create(ctx, "delete-me")
@@ -152,7 +153,7 @@ func TestSession_Delete(t *testing.T) {
 func TestSession_SetStateAndPlan(t *testing.T) {
 	sm, err := tui.NewSessionManager(filepath.Join(t.TempDir(), "sessions.json"))
 	require.NoError(t, err)
-	defer sm.CloseAll()
+	defer func() { require.NoError(t, sm.CloseAll()) }()
 
 	ctx := context.Background()
 	session, err := sm.Create(ctx, "state-plan-test")

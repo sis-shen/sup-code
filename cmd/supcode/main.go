@@ -134,7 +134,7 @@ func main() {
 		os.Exit(1)
 	}
 	if closer, ok := agent.(io.Closer); ok {
-		defer closer.Close()
+		defer func() { _ = closer.Close() }()
 	}
 	if err := internal.InitTUI(ctx, agent); err != nil {
 		slog.Error("TUI exited with error", "error", err)
@@ -151,7 +151,7 @@ func runSingleShot(ctx context.Context, cfg pkg.Config, query string) {
 		os.Exit(1)
 	}
 	if closer, ok := agent.(io.Closer); ok {
-		defer closer.Close()
+		defer func() { _ = closer.Close() }()
 	}
 
 	sessionID := "single-shot-" + strings.ReplaceAll(query[0:min(len(query), 20)], " ", "_")

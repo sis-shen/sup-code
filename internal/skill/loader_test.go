@@ -9,14 +9,13 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func setupTestSkill(t *testing.T, dir, name string) string {
+func setupTestSkill(t *testing.T, dir, name string) {
 	t.Helper()
 	skillDir := filepath.Join(dir, name)
-	os.MkdirAll(filepath.Join(skillDir, "prompts"), 0755)
+	require.NoError(t, os.MkdirAll(filepath.Join(skillDir, "prompts"), 0755))
 	manifest := `{"name":"` + name + `","version":"1.0.0","description":"test skill for ` + name + `"}`
-	os.WriteFile(filepath.Join(skillDir, "skill.json"), []byte(manifest), 0644)
-	os.WriteFile(filepath.Join(skillDir, "prompts", "system.md"), []byte("You are a `+name+` expert."), 0644)
-	return skillDir
+	require.NoError(t, os.WriteFile(filepath.Join(skillDir, "skill.json"), []byte(manifest), 0644))
+	require.NoError(t, os.WriteFile(filepath.Join(skillDir, "prompts", "system.md"), []byte("You are a `+name+` expert."), 0644))
 }
 
 func TestDiscoverSingle(t *testing.T) {
@@ -71,8 +70,8 @@ func TestLoadNotFound(t *testing.T) {
 func TestLoadInvalidManifest(t *testing.T) {
 	dir := t.TempDir()
 	skillDir := filepath.Join(dir, "broken")
-	os.MkdirAll(skillDir, 0755)
-	os.WriteFile(filepath.Join(skillDir, "skill.json"), []byte(`{invalid`), 0644)
+	require.NoError(t, os.MkdirAll(skillDir, 0755))
+	require.NoError(t, os.WriteFile(filepath.Join(skillDir, "skill.json"), []byte(`{invalid`), 0644))
 
 	loader := NewSkillLoader(dir, "", "")
 	_, err := loader.Load("broken")
@@ -86,8 +85,8 @@ func TestPriorityProjectOverridesBuiltin(t *testing.T) {
 	setupTestSkill(t, builtin, "common")
 	// Project overrides with different description
 	projDir := filepath.Join(project, "common")
-	os.MkdirAll(projDir, 0755)
-	os.WriteFile(filepath.Join(projDir, "skill.json"), []byte(`{"name":"common","version":"2.0.0","description":"project version"}`), 0644)
+	require.NoError(t, os.MkdirAll(projDir, 0755))
+	require.NoError(t, os.WriteFile(filepath.Join(projDir, "skill.json"), []byte(`{"name":"common","version":"2.0.0","description":"project version"}`), 0644))
 
 	loader := NewSkillLoader(builtin, "", project)
 	infos, err := loader.Discover()
@@ -129,8 +128,10 @@ func TestInvalidateAll(t *testing.T) {
 	setupTestSkill(t, dir, "s2")
 
 	loader := NewSkillLoader(dir, "", "")
-	loader.Load("s1")
-	loader.Load("s2")
+	_, err := loader.Load("s1")
+	require.NoError(t, err)
+	_, err = loader.Load("s2")
+	require.NoError(t, err)
 	loader.InvalidateAll()
 
 	infos, err := loader.Discover()

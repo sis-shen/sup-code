@@ -54,7 +54,7 @@ func TestEmbeddingProvider_BatchGenerate(t *testing.T) {
 			},
 		}
 		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(resp)
+		_ = json.NewEncoder(w).Encode(resp)
 	}))
 	defer server.Close()
 
@@ -79,7 +79,7 @@ func TestEmbeddingProvider_BatchGenerate(t *testing.T) {
 func TestEmbeddingProvider_Generate(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		var req embedRequest
-		json.NewDecoder(r.Body).Decode(&req)
+		_ = json.NewDecoder(r.Body).Decode(&req)
 		if len(req.Input) != 1 || req.Input[0] != "test text" {
 			t.Errorf("unexpected input: %v", req.Input)
 		}
@@ -89,7 +89,7 @@ func TestEmbeddingProvider_Generate(t *testing.T) {
 			},
 		}
 		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(resp)
+		_ = json.NewEncoder(w).Encode(resp)
 	}))
 	defer server.Close()
 
@@ -109,7 +109,7 @@ func TestEmbeddingProvider_APIError(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(w).Encode(map[string]interface{}{
+		_ = json.NewEncoder(w).Encode(map[string]interface{}{
 			"error": map[string]string{"message": "invalid api key"},
 		})
 	}))
@@ -128,7 +128,7 @@ func TestEmbeddingProvider_APIErrorMessage(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
-		json.NewEncoder(w).Encode(map[string]interface{}{
+		_ = json.NewEncoder(w).Encode(map[string]interface{}{
 			"error": map[string]string{"message": "rate limit exceeded"},
 		})
 	}))
@@ -149,7 +149,7 @@ func TestEmbeddingProvider_APIErrorMessage(t *testing.T) {
 func TestEmbeddingProvider_BatchLimit(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		var req embedRequest
-		json.NewDecoder(r.Body).Decode(&req)
+		_ = json.NewDecoder(r.Body).Decode(&req)
 		if len(req.Input) > 20 {
 			t.Errorf("batch size > 20: %d", len(req.Input))
 		}
@@ -159,7 +159,7 @@ func TestEmbeddingProvider_BatchLimit(t *testing.T) {
 				map[string]interface{}{"embedding": []float64{float64(i)}, "index": i})
 			_ = input
 		}
-		json.NewEncoder(w).Encode(resp)
+		_ = json.NewEncoder(w).Encode(resp)
 	}))
 	defer server.Close()
 

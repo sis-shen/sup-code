@@ -22,10 +22,10 @@ func NewGitCommitHook(enabled bool) *GitCommitHook {
 	return &GitCommitHook{enabled: enabled}
 }
 
-func (h *GitCommitHook) Name() string { return "git_auto_commit" }
-func (h *GitCommitHook) Enable()                    { h.enabled = true }
-func (h *GitCommitHook) Disable()                   { h.enabled = false }
-func (h *GitCommitHook) IsEnabled() bool            { return h.enabled }
+func (h *GitCommitHook) Name() string    { return "git_auto_commit" }
+func (h *GitCommitHook) Enable()         { h.enabled = true }
+func (h *GitCommitHook) Disable()        { h.enabled = false }
+func (h *GitCommitHook) IsEnabled() bool { return h.enabled }
 
 func (h *GitCommitHook) BeforeTool(ctx context.Context, toolName string, params json.RawMessage) (json.RawMessage, error) {
 	return params, nil

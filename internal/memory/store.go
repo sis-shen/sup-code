@@ -12,6 +12,7 @@ import (
 	_ "modernc.org/sqlite"
 
 	"github.com/google/uuid"
+
 	"github.com/supcode/supcode/pkg"
 )
 
@@ -130,7 +131,7 @@ func (s *Store) keywordSearch(_ context.Context, query string, scope string, lim
 	if err != nil {
 		return nil, err
 	}
-	defer rows.Close()
+	defer func() { _ = rows.Close() }()
 
 	return scanEntries(rows)
 }
@@ -205,7 +206,7 @@ func (s *Store) getAllWithEmbeddings(_ context.Context, scope string) ([]pkg.Mem
 	if err != nil {
 		return nil, err
 	}
-	defer rows.Close()
+	defer func() { _ = rows.Close() }()
 
 	return scanEntries(rows)
 }
@@ -224,7 +225,7 @@ func (s *Store) GetByCategory(_ context.Context, scope string, category string) 
 	if err != nil {
 		return nil, err
 	}
-	defer rows.Close()
+	defer func() { _ = rows.Close() }()
 
 	return scanEntries(rows)
 }

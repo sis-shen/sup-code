@@ -125,7 +125,7 @@ func TestStreamEvent(t *testing.T) {
 	roundTrip(t, se, func(e StreamEvent) bool { return e.Type == "text_delta" && e.Delta == "Hello" })
 
 	seTool := StreamEvent{
-		Type: "tool_call",
+		Type:     "tool_call",
 		ToolCall: &ToolCall{ID: "call_1", Name: "read_file"},
 	}
 	roundTrip(t, seTool, func(e StreamEvent) bool { return e.ToolCall != nil && e.ToolCall.Name == "read_file" })

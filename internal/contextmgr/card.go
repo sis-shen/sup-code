@@ -7,16 +7,17 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+
 	"github.com/supcode/supcode/pkg"
 )
 
 // CardExtractor extracts structured memory cards from compressed summaries.
 type CardExtractor struct {
-	mu sync.Mutex
-	decisionPat    *regexp.Regexp
-	errorPat       *regexp.Regexp
-	preferencePat  *regexp.Regexp
-	sentenceSplit  *regexp.Regexp
+	mu            sync.Mutex
+	decisionPat   *regexp.Regexp
+	errorPat      *regexp.Regexp
+	preferencePat *regexp.Regexp
+	sentenceSplit *regexp.Regexp
 }
 
 // NewCardExtractor creates a new CardExtractor.
@@ -106,13 +107,6 @@ func dedupCards(cards []pkg.MemoryCard) []pkg.MemoryCard {
 	return result
 }
 
-// setCards stores memory cards on a sessionContext.
-func setCards(sc *sessionContext, cards []pkg.MemoryCard) {
-	sc.mu.Lock()
-	defer sc.mu.Unlock()
-	sc.memoryCards = cards
-}
-
 // getCards retrieves memory cards from a sessionContext.
 func getCards(sc *sessionContext) []pkg.MemoryCard {
 	sc.mu.RLock()
@@ -123,20 +117,6 @@ func getCards(sc *sessionContext) []pkg.MemoryCard {
 	result := make([]pkg.MemoryCard, len(sc.memoryCards))
 	copy(result, sc.memoryCards)
 	return result
-}
-
-// getSummary returns the compressed summary from a sessionContext.
-func getSummary(sc *sessionContext) string {
-	sc.mu.RLock()
-	defer sc.mu.RUnlock()
-	return sc.compressedSummary
-}
-
-// setSummary sets the compressed summary on a sessionContext.
-func setSummary(sc *sessionContext, summary string) {
-	sc.mu.Lock()
-	defer sc.mu.Unlock()
-	sc.compressedSummary = summary
 }
 
 // setCompressAsyncResult stores both summary and cards in one lock.

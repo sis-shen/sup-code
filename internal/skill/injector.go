@@ -41,9 +41,9 @@ func InjectSkills(basePrompt string, skills []*Skill) string {
 		if i > 0 {
 			b.WriteString(skillSeparator)
 		}
-		b.WriteString(fmt.Sprintf("### %s (%s)\n", s.Manifest.Name, s.Manifest.Version))
+		fmt.Fprintf(&b, "### %s (%s)\n", s.Manifest.Name, s.Manifest.Version)
 		if s.Manifest.Description != "" {
-			b.WriteString(fmt.Sprintf("%s\n\n", s.Manifest.Description))
+			fmt.Fprintf(&b, "%s\n\n", s.Manifest.Description)
 		}
 		if s.SystemPrompt != "" {
 			b.WriteString(s.SystemPrompt)

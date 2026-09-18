@@ -3,6 +3,8 @@ package permission
 import (
 	"path/filepath"
 	"testing"
+
+	"github.com/stretchr/testify/require"
 )
 
 func setupFirstUseTracker(t *testing.T) *FirstUseTracker {
@@ -12,7 +14,7 @@ func setupFirstUseTracker(t *testing.T) *FirstUseTracker {
 	if err != nil {
 		t.Fatalf("NewFirstUseTracker failed: %v", err)
 	}
-	t.Cleanup(func() { f.Close() })
+	t.Cleanup(func() { require.NoError(t, f.Close()) })
 	return f
 }
 
@@ -43,13 +45,13 @@ func TestFirstUsePersistenceAcrossSessions(t *testing.T) {
 	if err := f1.Authorize("persist-tool"); err != nil {
 		t.Fatalf("Authorize failed: %v", err)
 	}
-	f1.Close()
+	require.NoError(t, f1.Close())
 
 	f2, err := NewFirstUseTracker(dbPath)
 	if err != nil {
 		t.Fatalf("NewFirstUseTracker failed: %v", err)
 	}
-	defer f2.Close()
+	defer func() { require.NoError(t, f2.Close()) }()
 
 	if f2.IsFirstUse("persist-tool") {
 		t.Error("expected IsFirstUse to be false after re-opening the same db")

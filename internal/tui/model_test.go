@@ -9,6 +9,7 @@ import (
 
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/stretchr/testify/require"
+
 	"github.com/supcode/supcode/pkg"
 )
 
@@ -25,7 +26,7 @@ func setupTestModel(t *testing.T) *Model {
 	t.Cleanup(func() {
 		_ = sm.CloseAll()
 		_ = renderer.Close()
-		os.Remove(dbPath)
+		_ = os.Remove(dbPath)
 	})
 
 	session, err := sm.Create(context.Background(), "Test")

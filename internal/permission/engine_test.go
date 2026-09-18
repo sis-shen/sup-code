@@ -6,6 +6,8 @@ import (
 	"sync"
 	"testing"
 
+	"github.com/stretchr/testify/require"
+
 	"github.com/supcode/supcode/pkg"
 )
 
@@ -304,7 +306,7 @@ func TestConcurrentReadWrite(t *testing.T) {
 
 	for i := 0; i < 5; i++ {
 		wg.Add(1)
-		go func(i int) {
+		go func() {
 			defer wg.Done()
 			_ = e.AddRule(pkg.PermissionRule{
 				ID:       "test-rule",
@@ -314,7 +316,7 @@ func TestConcurrentReadWrite(t *testing.T) {
 				Priority: 100,
 			})
 			_ = e.RemoveRule("test-rule")
-		}(i)
+		}()
 	}
 
 	wg.Wait()
@@ -467,7 +469,7 @@ func TestFirstUseIntegration(t *testing.T) {
 	if err != nil {
 		t.Fatalf("NewFirstUseTracker failed: %v", err)
 	}
-	defer tracker.Close()
+	defer func() { require.NoError(t, tracker.Close()) }()
 
 	e := New()
 	e.SetFirstUseTracker(tracker)
@@ -527,14 +529,14 @@ func TestSetAndGetTrackerAuditor(t *testing.T) {
 	if err != nil {
 		t.Fatalf("NewFirstUseTracker failed: %v", err)
 	}
-	defer tracker.Close()
+	defer func() { require.NoError(t, tracker.Close()) }()
 
 	auditPath := filepath.Join(t.TempDir(), "audit_test.db")
 	auditor, err := NewAuditLogger(auditPath)
 	if err != nil {
 		t.Fatalf("NewAuditLogger failed: %v", err)
 	}
-	defer auditor.Close()
+	defer func() { require.NoError(t, auditor.Close()) }()
 
 	e.SetFirstUseTracker(tracker)
 	e.SetAuditLogger(auditor)

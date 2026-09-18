@@ -12,9 +12,9 @@ import (
 
 // ReadFileParams is the parsed parameters for ReadFile.
 type ReadFileParams struct {
-	Path     string `json:"path"`
-	StartLine *int  `json:"start_line,omitempty"`
-	EndLine   *int  `json:"end_line,omitempty"`
+	Path      string `json:"path"`
+	StartLine *int   `json:"start_line,omitempty"`
+	EndLine   *int   `json:"end_line,omitempty"`
 }
 
 var jsonSchema = json.RawMessage(`{
@@ -96,19 +96,19 @@ func (t *Tool) Execute(ctx context.Context, params json.RawMessage) (pkg.ToolRes
 		if fp.EndLine != nil && *fp.EndLine <= len(lines) {
 			end = *fp.EndLine
 		}
-	if start > end && fp.StartLine != nil && fp.EndLine != nil {
-		return pkg.ToolResult{
-			Success: false,
-			Error:   fmt.Sprintf("start_line %d is after end_line %d", *fp.StartLine, *fp.EndLine),
-		}, nil
-	}
-	if start >= len(lines) {
+		if start > end && fp.StartLine != nil && fp.EndLine != nil {
+			return pkg.ToolResult{
+				Success: false,
+				Error:   fmt.Sprintf("start_line %d is after end_line %d", *fp.StartLine, *fp.EndLine),
+			}, nil
+		}
+		if start >= len(lines) {
 			return pkg.ToolResult{
 				Success: false,
 				Error:   fmt.Sprintf("start_line %d exceeds file length (%d lines)", *fp.StartLine, len(lines)),
 			}, nil
 		}
-	result := strings.Join(lines[start:end], "\n")
+		result := strings.Join(lines[start:end], "\n")
 		data = []byte(result)
 	}
 

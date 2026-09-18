@@ -1,4 +1,4 @@
-﻿package cli
+package cli
 
 import (
 	"fmt"
@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/spf13/cobra"
+
 	"github.com/supcode/supcode/internal"
 	"github.com/supcode/supcode/internal/tui"
 )
@@ -51,12 +52,12 @@ func runTUI(cmd *cobra.Command) error {
 	if err != nil {
 		return fmt.Errorf("init renderer: %w", err)
 	}
-	defer renderer.Close()
+	defer func() { _ = renderer.Close() }()
 
- 	modelName := "not configured"
- 	if app.LLMClient != nil {
- 		modelName = app.LLMClient.ProviderName()
- 	}
+	modelName := "not configured"
+	if app.LLMClient != nil {
+		modelName = app.LLMClient.ProviderName()
+	}
 	cwd, _ := os.Getwd()
 	logger.Info("starting supcode",
 		"version", version,
@@ -73,9 +74,9 @@ func runTUI(cmd *cobra.Command) error {
 }
 
 func runSingleShot(cmd *cobra.Command, input string) error {
- 	if app.SessionMgr == nil {
- 		return fmt.Errorf("session manager not initialized")
- 	}
+	if app.SessionMgr == nil {
+		return fmt.Errorf("session manager not initialized")
+	}
 	ctx := cmd.Context()
 	logger := slog.With("mode", "single_shot")
 
@@ -86,16 +87,18 @@ func runSingleShot(cmd *cobra.Command, input string) error {
 		return fmt.Errorf("create session: %w", err)
 	}
 
- 	if app.Agent == nil {
- 		return fmt.Errorf("agent not initialized — configure an API key first")
- 	}
+	if app.Agent == nil {
+		return fmt.Errorf("agent not initialized — configure an API key first")
+	}
 	result, err := app.Agent.Run(ctx, session.ID, input)
 	if err != nil {
 		return fmt.Errorf("execute: %w", err)
 	}
 
 	if result.Summary != "" {
-		fmt.Fprintln(cmd.OutOrStdout(), result.Summary)
+		if _, err := fmt.Fprintln(cmd.OutOrStdout(), result.Summary); err != nil {
+			return err
+		}
 	}
 	if result.Error != "" {
 		return fmt.Errorf("%s", result.Error)

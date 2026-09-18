@@ -1,4 +1,4 @@
-﻿package mcp
+package mcp
 
 import (
 	"context"
@@ -6,6 +6,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
 	"github.com/supcode/supcode/pkg"
 )
 
@@ -30,7 +31,7 @@ func TestStdioSend_AfterProcessCrash(t *testing.T) {
 	if err != nil {
 		t.Skip("transport init failed:", err)
 	}
-	defer transport.Close()
+	defer func() { _ = transport.Close() }()
 
 	_, err = transport.Send(context.Background(), jsonRPCRequest{Method: "test"})
 	require.Error(t, err)
@@ -43,7 +44,7 @@ func TestNewStdioTransport_RestartWithRetry(t *testing.T) {
 	if err != nil {
 		t.Skip("transport init failed:", err)
 	}
-	defer transport.Close()
+	defer func() { _ = transport.Close() }()
 
 	_, err = transport.Send(context.Background(), jsonRPCRequest{Method: "test"})
 	require.Error(t, err)
@@ -56,7 +57,7 @@ func TestStdioProcessCrashDetection(t *testing.T) {
 	if err != nil {
 		t.Skip("transport init failed:", err)
 	}
-	defer transport.Close()
+	defer func() { _ = transport.Close() }()
 
 	_, err = transport.Send(context.Background(), jsonRPCRequest{ID: 42, Method: "test"})
 	require.Error(t, err)

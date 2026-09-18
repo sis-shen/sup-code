@@ -11,7 +11,7 @@ func newTestRenderer(t *testing.T) *Renderer {
 	t.Helper()
 	r, err := NewRenderer()
 	require.NoError(t, err)
-	t.Cleanup(func() { r.Close() })
+	t.Cleanup(func() { _ = r.Close() })
 	return r
 }
 

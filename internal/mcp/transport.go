@@ -1,7 +1,6 @@
 package mcp
 
 import (
-	"github.com/supcode/supcode/pkg"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -52,10 +51,6 @@ type Transport interface {
 
 const protocolVersion = "2024-11-05"
 
-// defaultServerConfig is used when connecting via SSE without explicit config.
-var defaultServerConfig = pkg.MCPServerConfig{Transport: "stdio"}
-
 // compile-time check
 var _ Transport = (*stdioTransport)(nil)
 var _ Transport = (*sseTransport)(nil)
-

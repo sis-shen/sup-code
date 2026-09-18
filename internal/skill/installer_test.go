@@ -12,10 +12,10 @@ import (
 func setupSourceSkill(t *testing.T, dir, name string) {
 	t.Helper()
 	skillDir := filepath.Join(dir, name)
-	os.MkdirAll(filepath.Join(skillDir, "prompts"), 0755)
+	require.NoError(t, os.MkdirAll(filepath.Join(skillDir, "prompts"), 0755))
 	manifest := `{"name":"` + name + `","version":"1.0.0","description":"test"}`
-	os.WriteFile(filepath.Join(skillDir, "skill.json"), []byte(manifest), 0644)
-	os.WriteFile(filepath.Join(skillDir, "prompts", "system.md"), []byte("prompt content"), 0644)
+	require.NoError(t, os.WriteFile(filepath.Join(skillDir, "skill.json"), []byte(manifest), 0644))
+	require.NoError(t, os.WriteFile(filepath.Join(skillDir, "prompts", "system.md"), []byte("prompt content"), 0644))
 }
 
 func TestInstallFromLocal(t *testing.T) {
@@ -72,8 +72,8 @@ func TestListInstalled(t *testing.T) {
 	setupSourceSkill(t, src, "s2")
 
 	inst := NewInstaller(target)
-	inst.InstallFromLocal(filepath.Join(src, "s1"))
-	inst.InstallFromLocal(filepath.Join(src, "s2"))
+	require.NoError(t, inst.InstallFromLocal(filepath.Join(src, "s1")))
+	require.NoError(t, inst.InstallFromLocal(filepath.Join(src, "s2")))
 
 	infos, err := inst.ListInstalled()
 	require.NoError(t, err)
@@ -84,9 +84,9 @@ func TestCopyDir(t *testing.T) {
 	src := t.TempDir()
 	dst := t.TempDir()
 
-	os.WriteFile(filepath.Join(src, "a.txt"), []byte("content"), 0644)
-	os.MkdirAll(filepath.Join(src, "sub"), 0755)
-	os.WriteFile(filepath.Join(src, "sub", "b.txt"), []byte("nested"), 0644)
+	require.NoError(t, os.WriteFile(filepath.Join(src, "a.txt"), []byte("content"), 0644))
+	require.NoError(t, os.MkdirAll(filepath.Join(src, "sub"), 0755))
+	require.NoError(t, os.WriteFile(filepath.Join(src, "sub", "b.txt"), []byte("nested"), 0644))
 
 	err := copyDir(src, filepath.Join(dst, "copied"))
 	require.NoError(t, err)

@@ -1,8 +1,7 @@
-﻿package mcp
+package mcp
 
 import (
 	"context"
-	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -18,10 +17,10 @@ func TestSSETransport_New(t *testing.T) {
 	}))
 	defer server.Close()
 
-	transport, err := newSSETransport(context.Background(), server.URL, nil)
+	transport, err := newSSETransport(context.Background(), server.URL)
 	require.NoError(t, err)
 	require.NotNil(t, transport)
-	defer transport.Close()
+	defer func() { _ = transport.Close() }()
 }
 
 func TestSSETransport_SendAfterClose(t *testing.T) {
@@ -31,17 +30,17 @@ func TestSSETransport_SendAfterClose(t *testing.T) {
 	}))
 	defer server.Close()
 
-	transport, err := newSSETransport(context.Background(), server.URL, nil)
+	transport, err := newSSETransport(context.Background(), server.URL)
 	require.NoError(t, err)
 
-	transport.Close()
+	require.NoError(t, transport.Close())
 	_, err = transport.Send(context.Background(), jsonRPCRequest{Method: "test"})
 	require.Error(t, err)
 	assert.Contains(t, err.Error(), "closed")
 }
 
 func TestSSETransport_HandlesInvalidURL(t *testing.T) {
-	_, err := newSSETransport(context.Background(), "http://127.0.0.1:1", nil)
+	_, err := newSSETransport(context.Background(), "http://127.0.0.1:1")
 	require.Error(t, err)
 }
 
@@ -51,7 +50,7 @@ func TestSSETransport_HTTPError(t *testing.T) {
 	}))
 	defer server.Close()
 
-	_, err := newSSETransport(context.Background(), server.URL, nil)
+	_, err := newSSETransport(context.Background(), server.URL)
 	require.Error(t, err)
 	assert.Contains(t, err.Error(), "HTTP 500")
 }
@@ -77,4 +76,4 @@ func TestSSEEventParser(t *testing.T) {
 	assert.Contains(t, string(resp.Result), "tools")
 }
 
-var _ = fmt.Sprintf("")
+var _ = ""
