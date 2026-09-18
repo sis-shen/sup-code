@@ -1,0 +1,144 @@
+{
+  "phases": [
+    {
+      "n": 0,
+      "slug": "baseline",
+      "name": "工程地基与基线冻结",
+      "skill": "harness-phase-0-baseline",
+      "branch": "phase/0-engineering",
+      "prev": "—",
+      "ver": "v2.0.0-alpha.0",
+      "fps": [
+        "跑 go build/vet/test 并记录 v1 基线",
+        "建立 2.0 目录骨架 core/ plugin/ cmd/sup cmd/supd",
+        "ci.yml 与门禁脚本",
+        "提交/分支/文档规范模板",
+        "阶段报告与任务提示词模板"
+      ]
+    },
+    {
+      "n": 1,
+      "slug": "kernel",
+      "name": "Cordis 内核 core",
+      "skill": "harness-phase-1-kernel",
+      "branch": "phase/1-kernel",
+      "prev": "P0",
+      "ver": "v2.0.0-alpha.1",
+      "fps": [
+        "Context + Provide/Use 服务注册表",
+        "事件五模式 emit/waterfall/parallel/serial/bail",
+        "Scope/Fork/Isolate + Effect 可逆副作用",
+        "Loader: inject 拓扑/生命周期/热重载",
+        "插件清单与每插件配置树",
+        "Demo 插件 + 内核自测"
+      ]
+    },
+    {
+      "n": 2,
+      "slug": "plugins",
+      "name": "叶子插件化",
+      "skill": "harness-phase-2-leaf-plugins",
+      "branch": "phase/2-plugins",
+      "prev": "P1",
+      "ver": "v2.0.0-alpha.2",
+      "fps": [
+        "plugin-llm + 4 适配器",
+        "plugin-tools + 6 内置工具",
+        "plugin-mcp",
+        "plugin-skill + tool-skill",
+        "plugin-permission",
+        "plugin-memory",
+        "plugin-worktree",
+        "plugin-hooks-audit/git",
+        "新 LLM 适配器（推迟 2.1）"
+      ]
+    },
+    {
+      "n": 3,
+      "slug": "state",
+      "name": "状态与交互",
+      "skill": "harness-phase-3-state-interaction",
+      "branch": "phase/3-state",
+      "prev": "P2",
+      "ver": "v2.0.0-alpha.3",
+      "fps": [
+        "plugin-session（SQLite 兼容）",
+        "plugin-context（压缩/Token）",
+        "plugin-tui（interaction seam）",
+        "plugin-cli + plugin-command",
+        "plugin-config 旧配置兼容",
+        "流式输出打通 TUI（推迟 2.1）",
+        "TUI Ctrl+C → ctx 取消（推迟 2.1）"
+      ]
+    },
+    {
+      "n": 4,
+      "slug": "agent",
+      "name": "心脏迁移（Agent）",
+      "skill": "harness-phase-4-agent-core",
+      "branch": "phase/4-agent",
+      "prev": "P3",
+      "ver": "v2.0.0-alpha.4",
+      "fps": [
+        "plugin-agent ReAct 循环 + PlanMode + Corrector",
+        "agent/* 与 llm/chunk 事件",
+        "工具流水线 pre/guard/execute/post/result",
+        "plugin-subagent + Context.Fork 隔离",
+        "能力矩阵 C1~C25 全绿",
+        "并行工具调用（推迟 2.1）"
+      ]
+    },
+    {
+      "n": 5,
+      "slug": "daemon",
+      "name": "双子进程与远程",
+      "skill": "harness-phase-5-daemon-remote",
+      "branch": "phase/5-daemon",
+      "prev": "P4",
+      "ver": "v2.0.0-beta.1",
+      "fps": [
+        "cmd/sup（单发/TUI/子命令）",
+        "cmd/supd（常驻守护）",
+        "plugin-mcp-server",
+        "信号处理/优雅关闭/配置优先级",
+        "goreleaser 切换到 cmd/sup",
+        "HTTP/Web API（推迟 2.x）"
+      ]
+    },
+    {
+      "n": 6,
+      "slug": "dsh",
+      "name": "dsh 生态兼容",
+      "skill": "harness-phase-6-dsh-compat",
+      "branch": "phase/6-dsh",
+      "prev": "P4",
+      "ver": "v2.0.0-beta.2",
+      "fps": [
+        "SPP v1 协议与实现",
+        "plugin-dsh-bridge（Node 侧车）",
+        "dsh 工具 → ctx.tools 映射",
+        "dsh LLM provider → ctx.llm 映射",
+        "sup.plugin.json 规范",
+        "真实 dsh 插件端到端验证",
+        "dsh 事件面全量覆盖（推迟 2.x）"
+      ]
+    },
+    {
+      "n": 7,
+      "slug": "release",
+      "name": "收尾与发布",
+      "skill": "harness-phase-7-release",
+      "branch": "phase/7-release",
+      "prev": "P5+P6",
+      "ver": "v2.0.0",
+      "fps": [
+        "删除 v1 装配根（build/wire/app）",
+        "清理未引用依赖（含 cgo sqlite）",
+        "全量文档更新 + 迁移指南",
+        "CHANGELOG + tag + goreleaser 发布",
+        "安装脚本更新",
+        "性能基准报告"
+      ]
+    }
+  ]
+}

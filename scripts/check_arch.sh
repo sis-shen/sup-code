@@ -25,6 +25,27 @@ check_no_import() {
     fi
 }
 
+# v2 kernel rule: plugin/X must never import another plugin/Y. Plugins may only
+# communicate through the kernel (service keys / events), never by direct import.
+check_cross_plugin() {
+    local matched
+    for dir in plugin/*/; do
+        [ -d "$dir" ] || continue
+        local self
+        self=$(basename "$dir")
+        local imports
+        imports=$(grep -rhoE "\"${MODULE}/plugin/[a-z0-9_-]+" "$dir" --include="*.go" 2>/dev/null || true)
+        while IFS= read -r imp; do
+            [ -z "$imp" ] && continue
+            local other="${imp##*/plugin/}"
+            if [ "$other" != "$self" ]; then
+                echo -e "${RED}VIOLATION${NC}: plugin/${self} imports plugin/${other}"
+                errors=$((errors + 1))
+            fi
+        done <<< "$imports"
+    done
+}
+
 echo "=== SupCode Architecture Check ==="
 echo ""
 
@@ -45,6 +66,21 @@ check_no_import "internal/tui" "internal/tools"
 
 echo "[Rule 6] internal/cli -> internal/tools (DENY)"
 check_no_import "internal/cli" "internal/tools"
+
+echo "[Rule 7] core -> plugin/ (DENY)"
+check_no_import "core" "plugin/"
+
+echo "[Rule 8] core -> internal/ (DENY)"
+check_no_import "core" "internal/"
+
+echo "[Rule 9] pkg -> core/ (DENY)"
+check_no_import "pkg" "core/"
+
+echo "[Rule 10] pkg -> plugin/ (DENY)"
+check_no_import "pkg" "plugin/"
+
+echo "[Rule 11] plugin/X -> plugin/Y (DENY)"
+check_cross_plugin
 
 echo ""
 echo "=== Result ==="

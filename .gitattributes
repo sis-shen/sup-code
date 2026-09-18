@@ -1,0 +1,15 @@
+# Enforce LF for scripts and CI so they run correctly on Linux runners.
+*.sh text eol=lf
+*.bash text eol=lf
+*.yml text eol=lf
+*.yaml text eol=lf
+*.ps1 text eol=crlf
+
+# Go / Markdown / JSON defaults
+*.go text
+*.md text
+*.json text
+
+# Binary-ish artifacts
+*.exe binary
+*.so binary

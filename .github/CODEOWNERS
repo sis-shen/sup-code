@@ -1,0 +1,22 @@
+# CODEOWNERS
+# 说明：单仓多阶段开发时，关键路径需要对应负责人评审。
+# 占位：请替换为实际团队/成员（GitHub 用户名或 @org/team）。
+
+# 内核与契约（高影响面）
+/core/                      @supcode/core
+/pkg/                       @supcode/core
+/.github/                   @supcode/maintainers
+
+# 插件层
+/plugin/                    @supcode/plugins
+
+# 命令与守护
+/cmd/                       @supcode/maintainers
+
+# 流程与文档
+/docs/                      @supcode/maintainers
+/skills/                    @supcode/maintainers
+/tasks/                     @supcode/maintainers
+
+# 默认
+*                           @supcode/maintainers

@@ -1,0 +1,102 @@
+name: ci
+
+on:
+  push:
+    branches: [main, 'phase/**']
+  pull_request:
+    branches: [main, 'phase/**']
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  GO_VERSION: '1.25.x'
+
+jobs:
+  lint:
+    name: lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: ${{ env.GO_VERSION }}
+          cache: true
+      - name: golangci-lint
+        uses: golangci/golangci-lint-action@v6
+        with:
+          version: latest
+          args: --timeout=5m
+
+  build:
+    name: build (${{ matrix.os }})
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: ${{ env.GO_VERSION }}
+          cache: true
+      - name: build
+        run: go build ./...
+      - name: vet
+        run: go vet ./...
+
+  test:
+    name: test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: ${{ env.GO_VERSION }}
+          cache: true
+      - name: unit tests (race)
+        run: go test -race -count=1 -coverprofile=coverage.out ./...
+      - name: coverage summary
+        run: go tool cover -func=coverage.out | tail -n 1
+      - uses: actions/upload-artifact@v4
+        with:
+          name: coverage
+          path: coverage.out
+
+  diff-coverage:
+    name: diff-coverage
+    needs: test
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-go@v5
+        with:
+          go-version: ${{ env.GO_VERSION }}
+          cache: true
+      - name: tests with coverage
+        run: go test -count=1 -coverprofile=coverage.out ./...
+      - name: install diff-cover
+        run: pip install diff-cover
+      - name: new-code coverage >= 80%
+        run: diff-cover coverage.out --compare-branch=origin/${{ github.base_ref }} --fail-under=80
+
+  arch:
+    name: arch
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: architecture compliance
+        run: bash scripts/check_arch.sh
+
+  skills:
+    name: skills
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: validate skill manifests
+        run: bash scripts/check_skills.sh

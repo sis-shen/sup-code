@@ -1,0 +1,1 @@
+{"name":"harness-phase-6-dsh-compat","version":"1.0.0","description":"Sup Harness 2.0 Phase 6：SPP 跨运行时插件协议 + dsh 侧车桥 + 工具/LLM 映射，双向兼容","author":"SupCode","tools":["readfile","writefile","editfile","bash","glob","grep"],"requires":["harness-phase-5-daemon-remote"]}

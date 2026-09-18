@@ -1,0 +1,54 @@
+name: gate
+
+on:
+  pull_request:
+    types: [labeled, synchronize, reopened]
+  workflow_dispatch:
+
+jobs:
+  phase-gate:
+    name: phase-gate
+    if: contains(github.event.pull_request.labels.*.name, 'phase-gate') || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    environment: phase-gate
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: resolve phase number
+        id: phase
+        shell: bash
+        run: |
+          ref="${{ github.head_ref }}"
+          phase=$(echo "$ref" | grep -oE 'phase/[0-9]+' | head -1 | grep -oE '[0-9]+' || true)
+          if [ -z "$phase" ]; then phase="0"; fi
+          echo "number=$phase" >> "$GITHUB_OUTPUT"
+
+      - name: verify acceptance report
+        shell: bash
+        run: |
+          phase="${{ steps.phase.outputs.number }}"
+          report="tasks/acceptance/phase-${phase}.md"
+          if [ ! -f "$report" ]; then
+            echo "::error::missing acceptance report: $report"
+            exit 1
+          fi
+          echo "found $report"
+
+      - name: verify task checklists
+        shell: bash
+        run: bash scripts/check_task_checkboxes.sh
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.25.x'
+          cache: true
+
+      - name: full test suite
+        shell: bash
+        run: bash scripts/test.sh
+
+      - name: architecture compliance
+        shell: bash
+        run: bash scripts/check_arch.sh
