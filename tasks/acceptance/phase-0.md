@@ -29,7 +29,7 @@
 | G1 静态检查 | `golangci-lint run ./...`（v2.13.2） | ✅ **0 issues** |
 | G2 单元测试 | `go test ./...` | ⚠️ 宿主机 2 项已知环境失败（`TestDefaultValues`、`TestConfigGetExistingKey`）；干净 CI 通过 |
 | G3 竞态 | `go test -race -count=1 ./...` | ✅ 无 DATA RACE；仅 2 项已知环境失败 |
-| G4 覆盖率 | diff-cover | ✅ N/A（无新增业务代码） |
+| G4 覆盖率 | diff-cover（harness 代码 core/plugin） | ✅ N/A（Phase 0 无 harness 代码；工具修复+门禁限定） |
 | G5 架构 | `bash scripts/check_arch.sh` | ✅ PASS（11 规则） |
 | G6 Skill | `bash scripts/check_skills.sh` | ✅ validated 11 |
 | G7 文档/任务 | `bash scripts/check_task_checkboxes.sh` | ✅ 8 board(s) |

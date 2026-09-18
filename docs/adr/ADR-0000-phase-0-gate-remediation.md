@@ -61,5 +61,6 @@ Phase 0 的验收报告最初标注为「PASSED（本地）· CI 待验证」，
 3. **测试可移植性**：`installer_mock_test.go` 使用 Windows 专属 `cmd /c`，Linux 必失败；改为 `runtime.GOOS` 分支。
 4. **未提交的测试 fixture**：`tests/fixturess/` 被 `.gitignore` 忽略，导致 `tests/integration` 在 CI 全部失败。移除忽略项并提交 fixture（删除内层 `.git`）。
 5. **陈旧测试更正**：`TestMissingAPIKey`、`TestNewSupCode_MissingAPIKey` 假设 `config.Load`/`NewSupCode` 校验 API key，但代码已按设计将校验推迟到 Agent 层（`internal/config/config.go:99`）。改为断言延迟校验成功；基线文档 §3 相应更正（真正的环境性失败由 4 项降为 2 项，且在干净 CI 上通过）。
+6. **diff-coverage 工具不可用**：`diff-cover` 无法解析 Go 原生 coverprofile（`ValueError: Unknown syntax: mode: set`）——该 job 从未成功过。新增 `scripts/cover2lcov.py` 将 coverprofile 转为 LCOV；同时，鉴于 Phase 0 不含任何 `core/`、`plugin/` 业务代码（规划 §3 的 Phase 0 门禁本就不含 G4），将新代码覆盖率门禁**限定到 harness 代码**（`--include 'core/*' 'plugin/*' --ignore-whitespace`）。Phase 1 起 core、Phase 2 起 plugin 将真正受 80% 门禁约束。
 
-教训：Phase 0 的「基线冻结」必须包含**在干净环境执行 G1/G3/G9**，不能把未执行的门禁记为通过；本次已把该原则固化到流程。
+教训：Phase 0 的「基线冻结」必须包含**在干净环境执行 G1/G3/G9/G4**，不能把未执行或工具损坏的门禁记为通过；本次已把该原则固化到流程。
