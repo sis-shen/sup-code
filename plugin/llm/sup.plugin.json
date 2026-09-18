@@ -1,0 +1,9 @@
+{
+  "name": "plugin-llm",
+  "version": "2.0.0",
+  "description": "LLM provider clients exposed as the llm service",
+  "inject": [],
+  "provides": ["llm"],
+  "events": [],
+  "entry": "plugin/llm"
+}

@@ -1,0 +1,9 @@
+{
+  "name": "plugin-memory",
+  "version": "2.0.0",
+  "description": "Long-term memory backed by the v1 SQLite store.",
+  "inject": [],
+  "provides": ["memory"],
+  "events": [],
+  "entry": "builtin:memory"
+}

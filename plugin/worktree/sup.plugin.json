@@ -1,0 +1,9 @@
+{
+  "name": "plugin-worktree",
+  "version": "2.0.0",
+  "description": "Git worktree manager exposing pkg.WorktreeManager, reusing the v1 implementation.",
+  "inject": [],
+  "provides": ["worktree"],
+  "events": [],
+  "entry": "builtin:worktree"
+}
