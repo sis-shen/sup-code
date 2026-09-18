@@ -1,8 +1,8 @@
 # Phase 1 — Cordis 内核 core 验收报告（v2.0.0-alpha.1）
 
-> 状态：**PASSED（本地门禁）· CI 待验证**
+> 状态：**PASSED（本地门禁 + CI 全绿）**
 > 执行 Skill：`harness-phase-1-kernel`
-> 分支：`phase/1-kernel`
+> 分支：`phase/1-kernel`（PR #2）
 > 生成时间：2026-09-18
 > 相关决策：`docs/adr/ADR-0001-cordis-kernel.md`
 
@@ -31,7 +31,7 @@
 | G5 架构 | `bash scripts/check_arch.sh` | ✅ PASS（规则 7/8 保证 core 零业务依赖） |
 | G6 Skill | `bash scripts/check_skills.sh` | ✅ validated 11 |
 | G7 文档/任务 | `bash scripts/check_task_checkboxes.sh` | ✅ OK |
-| G8/CI | PR 门禁 | ⏳ 待推送验证 |
+| G8/CI | PR #2 required checks | ✅ 全绿（lint/build×3/test/arch/skills/diff-coverage/phase-gate） |
 
 ## 3. 验收标准（DoD）
 
@@ -42,6 +42,7 @@
 - [x] `core` 不 import `plugin/*` 或 `internal/*`（G5）
 - [x] 内核核心包覆盖率 ≥ 85%（`core` 94.0%）
 - [x] Demo 插件完整演示 Provide/inject/event/effect/scope
+- [x] CI 全绿（PR #2）
 
 ## 4. 证据
 
@@ -64,6 +65,6 @@
 
 ## 6. 结论
 
-- 状态：**PASSED（本地）· PENDING CI**
-- 推进条件：CI 全绿后合并 `main` 并打 tag `v2.0.0-alpha.1`。
+- 状态：**PASSED（本地 + CI）**
+- 后续：合并 `phase/1-kernel` → `main`，打 tag `v2.0.0-alpha.1`。
 - 签署：opencode Phase 1 执行 Agent（2026-09-18）
