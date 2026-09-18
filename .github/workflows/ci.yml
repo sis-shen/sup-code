@@ -84,7 +84,7 @@ jobs:
         run: pip install diff-cover
       - name: convert Go coverprofile to LCOV
         run: python3 scripts/cover2lcov.py coverage.out > coverage.lcov
-      - name: new-code coverage >= 80% (harness code: core/ + plugin/)
+      - name: new-code coverage >= 80% (harness core/ + plugin/)
         run: diff-cover coverage.lcov --compare-branch=origin/${{ github.base_ref }} --fail-under=80 --include 'core/*' 'plugin/*' --ignore-whitespace
 
   arch:
