@@ -1,0 +1,9 @@
+{
+  "name": "plugin-skill",
+  "version": "2.0.0",
+  "description": "Skill discovery and loading exposed as the skills service and the skill tool.",
+  "inject": ["tools"],
+  "provides": ["skills"],
+  "events": [],
+  "entry": "builtin:skill"
+}

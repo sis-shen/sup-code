@@ -1,0 +1,11 @@
+{
+  "name": "plugin-hooks-git",
+  "version": "2.0.0",
+  "description": "Git auto-commit hook plugin: commits file changes after write/edit tools.",
+  "inject": [],
+  "provides": [],
+  "events": [
+    { "name": "tools/post-execute", "mode": "waterfall" }
+  ],
+  "entry": "plugin/hooks"
+}

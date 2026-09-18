@@ -239,6 +239,24 @@ func (s *Store) Delete(_ context.Context, id string) error {
 	return err
 }
 
+// UpdateEmbedding sets the embedding vector of an existing entry by ID. It
+// satisfies pkg.MemoryStore and is used to backfill vectors for entries that
+// were saved without one.
+func (s *Store) UpdateEmbedding(_ context.Context, id string, embedding []float32) error {
+	var blob []byte
+	if embedding != nil {
+		blob = floatsToBlob(embedding)
+	}
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	_, err := s.db.Exec(
+		`UPDATE memories SET embedding = ?, updated_at = ? WHERE id = ?`,
+		blob, time.Now().UTC().Format(time.RFC3339), id,
+	)
+	return err
+}
+
 // Close closes the underlying database connection.
 func (s *Store) Close() error {
 	return s.db.Close()

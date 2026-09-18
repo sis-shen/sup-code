@@ -1,0 +1,11 @@
+{
+  "name": "plugin-hooks-audit",
+  "version": "2.0.0",
+  "description": "Audit hook plugin: records tool invocations through the permission engine.",
+  "inject": ["permission"],
+  "provides": [],
+  "events": [
+    { "name": "tools/result", "mode": "emit" }
+  ],
+  "entry": "plugin/hooks"
+}

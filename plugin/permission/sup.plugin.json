@@ -1,0 +1,11 @@
+{
+  "name": "plugin-permission",
+  "version": "2.0.0",
+  "description": "Tool pre-execute permission enforcement backed by the v1 permission engine.",
+  "inject": [],
+  "provides": ["permission"],
+  "events": [
+    { "name": "tools/pre-execute", "mode": "waterfall" }
+  ],
+  "entry": "builtin:permission"
+}

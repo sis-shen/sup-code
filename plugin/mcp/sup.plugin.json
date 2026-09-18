@@ -1,0 +1,9 @@
+{
+  "name": "plugin-mcp",
+  "version": "2.0.0",
+  "description": "MCP protocol client exposed as the mcp service",
+  "inject": ["tools"],
+  "provides": ["mcp"],
+  "events": [],
+  "entry": "builtin:mcp"
+}
