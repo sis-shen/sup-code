@@ -1,6 +1,9 @@
 // Package core implements the Cordis-semantic micro-kernel for Sup Harness 2.0.
 //
-// This is a Phase 0 placeholder that reserves the package path and keeps
-// `go build ./...` green. Context, Service registry, the five event modes,
-// Scope/Effect and the plugin Loader are implemented in Phase 1.
+// The kernel is the only non-plugin component: it owns the service registry
+// (Context), the typed event bus (emit/waterfall/parallel/serial/bail),
+// scoped lifecycle with reversible effects (Fork/Isolate/Effect), and the
+// plugin loader (inject topology, Load/Unload/Reload). It must never import
+// plugin/* or internal/*; all capabilities reach the kernel through services
+// and events.
 package core
