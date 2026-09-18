@@ -7,11 +7,11 @@
 
 | 字段 | 值 |
 |---|---|
-| 状态 | **PHASE_GATE（P1 本地 + CI 全绿；待合并 main 并打 tag）** |
-| 当前阶段 | Phase 1 — Cordis 内核 core |
-| 已通过阶段 | Phase 0 — 工程地基与基线冻结 |
-| 当前版本 | v2.0.0-alpha.1（待 tag） |
-| 最近 tag | `v2.0.0-alpha.0` |
+| 状态 | **PASSED（Phase 1 完成；可启动 Phase 2）** |
+| 当前阶段 | Phase 2 — 叶子插件化（NOT STARTED） |
+| 已通过阶段 | Phase 0、Phase 1 |
+| 当前版本 | v2.0.0-alpha.1 |
+| 最近 tag | `v2.0.0-alpha.1` |
 | 阻塞项 | 无 |
 
 ## 阶段进度
@@ -19,7 +19,7 @@
 | 阶段 | 状态 | 门禁 | 版本 | 任务看板 | 验收报告 |
 |---|---|---|---|---|---|
 | P0 工程地基/基线冻结 | **PASSED** | 本地 + CI 全绿 + 已发布 | v2.0.0-alpha.0 | `tasks/phase-0/README.md` | `tasks/acceptance/phase-0.md` |
-| P1 Cordis 内核 core | GATE（本地 + CI 全绿） | G0–G7 通过；core 覆盖率 94.0% | v2.0.0-alpha.1 | `tasks/phase-1/README.md` | `tasks/acceptance/phase-1.md` |
+| P1 Cordis 内核 core | **PASSED** | 本地 + CI 全绿 + 已发布（core 覆盖率 94.0%） | v2.0.0-alpha.1 | `tasks/phase-1/README.md` | `tasks/acceptance/phase-1.md` |
 | P2 叶子插件化 | NOT STARTED | — | v2.0.0-alpha.2 | `tasks/phase-2/README.md` | `tasks/acceptance/phase-2.md` |
 | P3 状态与交互 | NOT STARTED | — | v2.0.0-alpha.3 | `tasks/phase-3/README.md` | `tasks/acceptance/phase-3.md` |
 | P4 心脏迁移（Agent） | NOT STARTED | — | v2.0.0-alpha.4 | `tasks/phase-4/README.md` | `tasks/acceptance/phase-4.md` |
@@ -71,3 +71,4 @@
 | 2026-09-18 | Phase 0 合并与发布 | PR #1 squash 合入 main（`804f8f6`）；tag `v2.0.0-alpha.0`；goreleaser 发布多平台产物（预发布） |
 | 2026-09-18 | Phase 1 执行 | Cordis 内核 `core` 落地：Context/Service、事件五模式、Scope/Effect、Loader/拓扑/配置树；`plugin/demo`；core 覆盖 94.0%；ADR-0001 |
 | 2026-09-18 | Phase 1 CI 全绿 | PR #2：lint/build×3/test/arch/skills/diff-coverage/phase-gate 全部通过 |
+| 2026-09-18 | Phase 1 合并与发布 | PR #2 squash 合入 main（`d3a145f`）；tag `v2.0.0-alpha.1`；goreleaser 预发布多平台产物 |
