@@ -1,8 +1,8 @@
 # Phase 0 — 工程地基与基线冻结 验收报告（v2.0.0-alpha.0）
 
-> 状态：**PASSED（本地门禁）· CI 待验证**
+> 状态：**PASSED（本地门禁 + CI 全绿）**
 > 执行 Skill：`harness-phase-0-baseline`
-> 分支：`main`（本地执行）；集成/PR 分支：`phase/0-engineering`
+> 分支：`main`（本地执行）；集成/PR 分支：`phase/0-engineering`（PR #1）
 > 生成时间：2026-09-13；补录/复核：2026-09-18（编排 PRECHECK + FIX_LOOP）
 > 相关决策：`docs/adr/ADR-0000-phase-0-gate-remediation.md`
 
@@ -33,14 +33,14 @@
 | G5 架构 | `bash scripts/check_arch.sh` | ✅ PASS（11 规则） |
 | G6 Skill | `bash scripts/check_skills.sh` | ✅ validated 11 |
 | G7 文档/任务 | `bash scripts/check_task_checkboxes.sh` | ✅ 8 board(s) |
-| G8/CI | 推送 `phase/0-engineering` → CI | ⏳ 待推送验证 |
+| G8/CI | PR #1 required checks | ✅ 全绿（lint/build×3/test/arch/skills/diff-coverage） |
 | G9 集成 | `go test ./tests/integration/...` | ✅ PASS（fixture 已提交） |
 
 ## 3. 验收标准（DoD）
 
 - [x] `go build ./... && go vet ./...` 通过
 - [x] v1 基线报告完整，已知失败项逐一列明原因（`docs/baseline-v1.md` §3）
-- [ ] CI 在 PR 上全绿 —— **待推送/PR 后验证**
+- [x] CI 在 PR 上全绿（PR #1，所有 required checks 通过）
 - [x] 目录骨架存在且可编译
 - [x] 规范模板齐全
 - [x] G1/G3 本地门禁真正可复现且通过（本次补录）
@@ -66,10 +66,10 @@
 |---|---|---|
 | 移除 `internal/depslock` 的 cgo sqlite 空白导入 | 非阻塞，属清理项 | Phase 7 |
 | `.so`/WASM 插件后端 | 架构规划推迟项 | 2.1 |
-| 4 项宿主机环境测试失败改为隔离 HOME 断言 | 非本次范围，属测试健壮性改进 | 2.1（可选） |
+| 2 项宿主机环境测试失败改为隔离 HOME 断言 | 非本次范围，属测试健壮性改进 | 2.1（可选） |
 
 ## 6. 结论
 
-- 状态：**PASSED（本地）· PENDING CI**
-- 推进条件：推送 `phase/0-engineering` 并开启 PR，确认 `ci` 的 `lint/build/test/arch/skills` 全绿（`test` 允许既有 4 项失败），随后打 tag `v2.0.0-alpha.0`。
+- 状态：**PASSED（本地 + CI）**
+- 合并与发布：将 `phase/0-engineering` 合并到 `main`，打 tag `v2.0.0-alpha.0`。
 - 签署：opencode Phase 0 执行/复核 Agent（2026-09-13 / 2026-09-18）

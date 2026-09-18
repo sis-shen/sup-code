@@ -40,7 +40,7 @@
 - [x] G5 架构 `bash scripts/check_arch.sh` → PASS（11 规则）
 - [x] G6 Skill `bash scripts/check_skills.sh` → validated 11
 - [x] G7 文档/任务 `bash scripts/check_task_checkboxes.sh` → OK
-- [ ] G8/CI：推送 `phase/0-engineering` PR，确认首轮 CI 全绿
+- [x] G8/CI：PR #1 全部 required checks 通过（lint/build/test/arch/skills/diff-coverage）
 
 ## 文档维护
 - [x] 相关 `docs/*` 已更新（baseline/STATUS/skills-usage/规划）
