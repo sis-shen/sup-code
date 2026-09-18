@@ -38,6 +38,7 @@ changelog:
       - "^test:"
       - "^ci:"
 release:
+  prerelease: auto
   footer: >-
     ---
     Released by [GoReleaser](https://github.com/goreleaser/goreleaser).

@@ -70,6 +70,6 @@
 
 ## 6. 结论
 
-- 状态：**PASSED（本地 + CI）**
-- 合并与发布：将 `phase/0-engineering` 合并到 `main`，打 tag `v2.0.0-alpha.0`。
+- 状态：**PASSED（本地 + CI + 发布）**
+- 已合并：PR #1 squash → `main`（`804f8f6`）；tag `v2.0.0-alpha.0`；Release：[v2.0.0-alpha.0](https://github.com/sis-shen/sup-code/releases/tag/v2.0.0-alpha.0)（预发布，多平台产物 + checksums）。
 - 签署：opencode Phase 0 执行/复核 Agent（2026-09-13 / 2026-09-18）

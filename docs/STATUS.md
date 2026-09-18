@@ -7,18 +7,18 @@
 
 | 字段 | 值 |
 |---|---|
-| 状态 | **PHASE_GATE（P0 本地 + CI 全绿；待合并 main 并打 tag）** |
-| 当前阶段 | Phase 0 — 工程地基与基线冻结 |
-| 下一阶段 | Phase 1 — Cordis 内核 core |
-| 当前版本 | v2.0.0-alpha.0（待 tag） |
-| 最近 tag | — |
+| 状态 | **PASSED（Phase 0 完成；可启动 Phase 1）** |
+| 当前阶段 | Phase 1 — Cordis 内核 core（NOT STARTED） |
+| 已通过阶段 | Phase 0 — 工程地基与基线冻结 |
+| 当前版本 | v2.0.0-alpha.0 |
+| 最近 tag | `v2.0.0-alpha.0` |
 | 阻塞项 | 无 |
 
 ## 阶段进度
 
 | 阶段 | 状态 | 门禁 | 版本 | 任务看板 | 验收报告 |
 |---|---|---|---|---|---|
-| P0 工程地基/基线冻结 | GATE（本地 + CI 全绿） | G0/G1/G2/G3/G5/G6/G7/G9 通过；G4 harness 范围 N/A；CI 全绿 | v2.0.0-alpha.0 | `tasks/phase-0/README.md` | `tasks/acceptance/phase-0.md` |
+| P0 工程地基/基线冻结 | **PASSED** | 本地 + CI 全绿 + 已发布 | v2.0.0-alpha.0 | `tasks/phase-0/README.md` | `tasks/acceptance/phase-0.md` |
 | P1 Cordis 内核 core | NOT STARTED | — | v2.0.0-alpha.1 | `tasks/phase-1/README.md` | `tasks/acceptance/phase-1.md` |
 | P2 叶子插件化 | NOT STARTED | — | v2.0.0-alpha.2 | `tasks/phase-2/README.md` | `tasks/acceptance/phase-2.md` |
 | P3 状态与交互 | NOT STARTED | — | v2.0.0-alpha.3 | `tasks/phase-3/README.md` | `tasks/acceptance/phase-3.md` |
@@ -68,3 +68,4 @@
 | 2026-09-13 | Phase 0 执行 | 基线冻结、目录骨架、CI/门禁脚本、模板、任务看板；本地 G0/G5/G6/G7 通过 |
 | 2026-09-18 | Phase 0 门禁补救（FIX_LOOP） | G1 464→0（`.golangci.yml` v2）；G3 修复 3 处 data race；G6/G5 脚本修复；ADR-0000 |
 | 2026-09-18 | Phase 0 CI 首轮修复 + 全绿 | PR #1：修复 lint action、mcp 竞态、Windows mock、未提交 fixture、陈旧测试、diff-coverage 工具；所有 required checks 通过 |
+| 2026-09-18 | Phase 0 合并与发布 | PR #1 squash 合入 main（`804f8f6`）；tag `v2.0.0-alpha.0`；goreleaser 发布多平台产物（预发布） |
