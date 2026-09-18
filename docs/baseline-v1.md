@@ -78,6 +78,11 @@ SUPCODE_LLM_API_KEY is SET
 - 清除环境变量后测试仍失败，因为失败并非仅由环境变量引起，而是**宿主机用户配置文件**污染了默认值断言；需在隔离 HOME / 指定临时 `--config` 的环境下才会通过。
 - 这 4 项在 2.0 开发全程作为"已知基线失败"接受，判据为：**失败原因不得变化，且不得新增失败项**。
 
+> **更正（2026-09-18，CI 首轮实测）**：上述 4 项并非全部为环境性。
+> - `TestDefaultValues`、`TestConfigGetExistingKey`：确为宿主机 `~/.supcode/config.yaml` 污染；在干净的 CI runner 上**通过**（首轮 CI 已证实）。
+> - `TestMissingAPIKey`、`TestNewSupCode_MissingAPIKey`：**在任何干净环境都会失败**。根因是 `config.Manager.Load()` 已按设计将 API key 校验**推迟到 Agent 层**（`internal/config/config.go:99`，注释明确"offline 子命令需在无 key 时可用"），而这两个测试仍断言 `Load/NewSupCode` 必须报错，属**陈旧测试**。
+> - 处理：两个陈旧测试已改为断言"无 key 时加载/装配成功"（`TestLoadWithoutAPIKey`、`TestNewSupCode_WithoutAPIKey`）。因此当前真正的环境性已知失败仅剩 **2 项**（均在干净的 CI 上通过）。
+
 ---
 
 ## 4. 2.0 目录骨架（本阶段新增）
@@ -142,5 +147,17 @@ cmd/supd/main.go     supd 守护占位  （Phase 5 实现）
 
 ### 7.4 冻结判据更新
 
-- 原判据（§6）继续有效：**不得新增失败、既有 4 项失败原因不得变化**。
+- 原判据（§6）继续有效：**不得新增失败、既有失败原因不得变化**。
 - 新增：以 Phase 0 补救提交为 v2.0 迁移的**新基线**；此后 `golangci-lint run ./...` 必须保持 0 issues。
+
+### 7.5 CI 首轮（PR #1）暴露的额外阻塞与修复
+
+| # | 现象 | 根因 | 修复 |
+|---|---|---|---|
+| 1 | `lint` job 失败（`can't load config: go1.24 < 1.25.0`） | `golangci-lint-action@v6` + `version: latest` 解析到 v1.64.8，无法分析 Go 1.25 | 升级为 `golangci-lint-action@v9` + `version: v2.13.2` |
+| 2 | `internal/mcp` DATA RACE | `stdioTransport.startProcess()` 在重启路径写入 `t.cmd/t.stdin/...` 与 `Send()/Close()` 读并发 | 字段读写纳入 `t.mu` |
+| 3 | `internal/skill` 两个安装测试失败（`exec: "cmd" not found`） | mock 用 Windows 专属 `cmd /c` | 改用 `runtime.GOOS` 分支的 `true`/`false` 或 `cmd /c exit` |
+| 4 | `tests/integration` 全部失败（fixture 缺失） | `tests/fixturess/` 被 `.gitignore` 忽略，从未提交 | 移除忽略项，删除内层 `.git`，提交 fixture |
+| 5 | 2 个 API key 测试在干净环境失败 | 陈旧测试（见 §3 更正） | 改为断言延迟校验成功 |
+
+> 结论：v1 在干净 CI 上其实**从未全绿**；上述为 Phase 0 复核补齐的真实阻塞。

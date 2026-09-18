@@ -34,8 +34,8 @@
 ## 门禁
 - [x] G0 编译 `go build ./... && go vet ./...` → exit 0
 - [x] G1 静态检查 `bash scripts/lint.sh` → `0 issues`（v2.13.2）
-- [x] G2 单元测试 `go test ./...` → 4 项已知环境失败（见 `docs/baseline-v1.md` §3），无新增
-- [x] G3 竞态 `bash scripts/test.sh` → 无 DATA RACE，仅 4 项已知环境失败
+- [x] G2 单元测试 `go test ./...` → 宿主机 2 项已知环境失败（见 `docs/baseline-v1.md` §3），干净 CI 通过
+- [x] G3 竞态 `bash scripts/test.sh` → 无 DATA RACE，仅 2 项已知环境失败
 - [x] G4 覆盖率（Phase 0 无新增业务代码，N/A）
 - [x] G5 架构 `bash scripts/check_arch.sh` → PASS（11 规则）
 - [x] G6 Skill `bash scripts/check_skills.sh` → validated 11

@@ -109,12 +109,13 @@ func TestPriorityChain(t *testing.T) {
 	}
 }
 
-func TestMissingAPIKey(t *testing.T) {
+func TestLoadWithoutAPIKey(t *testing.T) {
+	t.Setenv("SUPCODE_LLM_API_KEY", "")
 	m := NewManager()
-	if err := m.Load(); err == nil {
-		t.Fatal("expected error when API key is missing, got nil")
-	} else {
-		t.Logf("got expected error: %v", err)
+	// API key validation is intentionally deferred to the Agent layer so that
+	// offline subcommands (config/skill) can load configuration without a key.
+	if err := m.Load(); err != nil {
+		t.Fatalf("Load() should succeed without an API key, got: %v", err)
 	}
 }
 

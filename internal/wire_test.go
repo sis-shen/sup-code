@@ -29,13 +29,15 @@ func TestNewSupCode_ConfigNotNil(t *testing.T) {
 	}
 }
 
-func TestNewSupCode_MissingAPIKey(t *testing.T) {
+func TestNewSupCode_WithoutAPIKey(t *testing.T) {
 	t.Setenv("SUPCODE_LLM_API_KEY", "")
+	// API key validation is deferred to the Agent layer, so assembling the
+	// application without a key must succeed.
 	sc, err := NewSupCode("")
-	if err == nil {
-		sc.Close()
-		t.Fatal("expected error for missing API key")
+	if err != nil {
+		t.Fatalf("NewSupCode() should succeed without an API key, got: %v", err)
 	}
+	defer sc.Close()
 }
 
 func TestSupCode_Close_Idempotent(t *testing.T) {

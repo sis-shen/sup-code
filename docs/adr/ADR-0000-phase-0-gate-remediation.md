@@ -51,3 +51,15 @@ Phase 0 的验收报告最初标注为「PASSED（本地）· CI 待验证」，
 
 - B1（Backlog）：Phase 7 复核 lint 与覆盖率门禁。
 - Phase 1 起，新增代码必须保持 lint 0；CI `lint` job 作为 required check 固化。
+
+## 补充（2026-09-18，CI PR #1 首轮）
+
+首轮 CI 证明 v1 在干净环境**从未全绿**，暴露并修复以下问题：
+
+1. **lint action 版本**：`golangci-lint-action@v6` 的 `version: latest` 解析为 v1.64.8，无法分析 go1.25。升级为 `@v9` + `version: v2.13.2`，与本地一致。
+2. **`internal/mcp` 竞态**：`stdioTransport` 在进程重启路径写 `cmd/stdin/stdout/stderr` 与 `Send/Close` 读并发；Windows 上未触发、Linux CI 触发。已将所有字段读写纳入 `t.mu`。
+3. **测试可移植性**：`installer_mock_test.go` 使用 Windows 专属 `cmd /c`，Linux 必失败；改为 `runtime.GOOS` 分支。
+4. **未提交的测试 fixture**：`tests/fixturess/` 被 `.gitignore` 忽略，导致 `tests/integration` 在 CI 全部失败。移除忽略项并提交 fixture（删除内层 `.git`）。
+5. **陈旧测试更正**：`TestMissingAPIKey`、`TestNewSupCode_MissingAPIKey` 假设 `config.Load`/`NewSupCode` 校验 API key，但代码已按设计将校验推迟到 Agent 层（`internal/config/config.go:99`）。改为断言延迟校验成功；基线文档 §3 相应更正（真正的环境性失败由 4 项降为 2 项，且在干净 CI 上通过）。
+
+教训：Phase 0 的「基线冻结」必须包含**在干净环境执行 G1/G3/G9**，不能把未执行的门禁记为通过；本次已把该原则固化到流程。

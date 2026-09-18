@@ -4,16 +4,33 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"runtime"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
+// fakeCommandOK returns a platform-native command that exits successfully.
+func fakeCommandOK() *exec.Cmd {
+	if runtime.GOOS == "windows" {
+		return exec.Command("cmd", "/c", "exit", "0")
+	}
+	return exec.Command("true")
+}
+
+// fakeCommandFail returns a platform-native command that exits non-zero.
+func fakeCommandFail() *exec.Cmd {
+	if runtime.GOOS == "windows" {
+		return exec.Command("cmd", "/c", "exit", "1")
+	}
+	return exec.Command("false")
+}
+
 func fakeExecCommandWriteToLastArg(files map[string]string) func(string, ...string) *exec.Cmd {
 	return func(cmd string, args ...string) *exec.Cmd {
 		if len(args) == 0 {
-			return exec.Command("cmd", "/c", "type", "NUL")
+			return fakeCommandOK()
 		}
 		outputDir := args[len(args)-1]
 		for relPath, content := range files {
@@ -21,12 +38,12 @@ func fakeExecCommandWriteToLastArg(files map[string]string) func(string, ...stri
 			_ = os.MkdirAll(filepath.Dir(fullPath), 0755)
 			_ = os.WriteFile(fullPath, []byte(content), 0644)
 		}
-		return exec.Command("cmd", "/c", "type", "NUL")
+		return fakeCommandOK()
 	}
 }
 
 func fakeExecCommandFail(cmd string, args ...string) *exec.Cmd {
-	return exec.Command("cmd", "/c", "exit", "1")
+	return fakeCommandFail()
 }
 
 func TestInstallFromGit_Success(t *testing.T) {
@@ -65,7 +82,7 @@ func TestInstallFromNPM_Success(t *testing.T) {
 			_ = os.WriteFile(filepath.Join(pkgDir, "skill.json"), []byte(manifest), 0644)
 			_ = os.WriteFile(filepath.Join(pkgDir, "prompts", "system.md"), []byte("prompt"), 0644)
 		}
-		return exec.Command("cmd", "/c", "type", "NUL")
+		return fakeCommandOK()
 	}
 	err := inst.InstallFromNPM("fake-npm-package")
 	require.NoError(t, err)

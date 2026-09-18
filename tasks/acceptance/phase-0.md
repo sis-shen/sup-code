@@ -27,13 +27,14 @@
 |---|---|---|
 | G0 编译 | `go build ./... && go vet ./...` | ✅ exit 0 |
 | G1 静态检查 | `golangci-lint run ./...`（v2.13.2） | ✅ **0 issues** |
-| G2 单元测试 | `go test ./...` | ⚠️ 4 项已知环境失败（原因不变），无新增 |
-| G3 竞态 | `go test -race -count=1 ./...` | ✅ 无 DATA RACE；仅 4 项已知环境失败 |
+| G2 单元测试 | `go test ./...` | ⚠️ 宿主机 2 项已知环境失败（`TestDefaultValues`、`TestConfigGetExistingKey`）；干净 CI 通过 |
+| G3 竞态 | `go test -race -count=1 ./...` | ✅ 无 DATA RACE；仅 2 项已知环境失败 |
 | G4 覆盖率 | diff-cover | ✅ N/A（无新增业务代码） |
 | G5 架构 | `bash scripts/check_arch.sh` | ✅ PASS（11 规则） |
 | G6 Skill | `bash scripts/check_skills.sh` | ✅ validated 11 |
 | G7 文档/任务 | `bash scripts/check_task_checkboxes.sh` | ✅ 8 board(s) |
 | G8/CI | 推送 `phase/0-engineering` → CI | ⏳ 待推送验证 |
+| G9 集成 | `go test ./tests/integration/...` | ✅ PASS（fixture 已提交） |
 
 ## 3. 验收标准（DoD）
 
@@ -54,8 +55,9 @@
   - `check_skills.sh` → `validated 11 skill manifest(s)`（exit 0）
   - `check_task_checkboxes.sh` → `task checklists OK (8 board(s))`
 - Lint：`golangci-lint run ./...` → `0 issues.`（exit 0）；修复前 464 issues（见 §7 ADR）
-- 测试基线：25 包 `ok`；4 项失败（`TestNewSupCode_MissingAPIKey`、`TestConfigGetExistingKey`、`TestDefaultValues`、`TestMissingAPIKey`）根因为宿主机 `~/.supcode/config.yaml`（provider=deepseek）与 `SUPCODE_LLM_API_KEY`。
-- 竞态：修复 3 处 data race（`internal/skill` 生产代码，`internal/contextmgr`、`internal/hooks/builtin` 测试）。
+- 测试基线：25 包 `ok`；宿主机 2 项失败（`TestDefaultValues`、`TestConfigGetExistingKey`）根因为宿主机 `~/.supcode/config.yaml`（provider=deepseek），在干净 CI 上通过。原基线报告的另 2 项（`TestMissingAPIKey`、`TestNewSupCode_MissingAPIKey`）经复核为**陈旧测试**（API key 校验已按设计推迟到 Agent 层），已更正。
+- 竞态：修复 `internal/skill`（生产）、`internal/contextmgr`、`internal/hooks/builtin`（测试）共 3 处 data race；CI 首轮追加修复 `internal/mcp/stdio.go`（Linux 触发）。
+- CI 首轮（PR #1）：build/arch/skills 通过；追加修复 lint action 版本、mcp 竞态、Windows 专属 `cmd` mock、未提交的 `tests/fixturess` fixture。
 - 参考：`docs/baseline-v1.md`、`docs/adr/ADR-0000-phase-0-gate-remediation.md`
 
 ## 5. 推迟 / Backlog
