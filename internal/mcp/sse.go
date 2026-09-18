@@ -27,13 +27,9 @@ type sseTransport struct {
 }
 
 // newSSETransport connects to an MCP server via SSE.
-func newSSETransport(ctx context.Context, baseURL string, httpClient *http.Client) (*sseTransport, error) {
-	if httpClient == nil {
-		httpClient = http.DefaultClient
-	}
-
+func newSSETransport(ctx context.Context, baseURL string) (*sseTransport, error) {
 	t := &sseTransport{
-		client:  httpClient,
+		client:  http.DefaultClient,
 		baseURL: baseURL,
 		pending: make(map[int]chan jsonRPCResponse),
 	}
@@ -60,7 +56,7 @@ func (t *sseTransport) connectSSE(ctx context.Context) error {
 		return fmt.Errorf("SSE connect: %w", err)
 	}
 	if resp.StatusCode != http.StatusOK {
-		resp.Body.Close()
+		_ = resp.Body.Close()
 		return fmt.Errorf("SSE connect: HTTP %d", resp.StatusCode)
 	}
 
@@ -69,7 +65,7 @@ func (t *sseTransport) connectSSE(ctx context.Context) error {
 }
 
 func (t *sseTransport) readSSE(body io.ReadCloser) {
-	defer body.Close()
+	defer func() { _ = body.Close() }()
 	scanner := bufio.NewScanner(body)
 
 	var eventType string
@@ -175,7 +171,7 @@ func (t *sseTransport) Send(ctx context.Context, req jsonRPCRequest) (jsonRPCRes
 	if err != nil {
 		return jsonRPCResponse{}, fmt.Errorf("POST request: %w", err)
 	}
-	httpResp.Body.Close()
+	_ = httpResp.Body.Close()
 
 	select {
 	case resp := <-respCh:

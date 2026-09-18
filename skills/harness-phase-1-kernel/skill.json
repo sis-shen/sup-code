@@ -1,0 +1,1 @@
+{"name":"harness-phase-1-kernel","version":"1.0.0","description":"Sup Harness 2.0 Phase 1：实现 Cordis 语义 Go 微内核（Context/Service/Event/Scope/Effect/Loader）","author":"SupCode","tools":["readfile","writefile","editfile","bash","glob","grep"],"requires":["harness-phase-0-baseline"]}

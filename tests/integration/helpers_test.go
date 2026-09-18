@@ -58,7 +58,7 @@ func newMockLLMServer(t *testing.T, mr mockResponse) *httptest.Server {
 	t.Helper()
 	return httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != "POST" {
-			http.Error(w, "method not allowed", 405)
+			http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
 			return
 		}
 		body, err := io.ReadAll(r.Body)
@@ -79,7 +79,7 @@ func newMockLLMServer(t *testing.T, mr mockResponse) *httptest.Server {
 		w.Header().Set("Cache-Control", "no-cache")
 		w.Header().Set("Connection", "keep-alive")
 		w.WriteHeader(http.StatusOK)
-		fmt.Fprint(w, response)
+		_, _ = fmt.Fprint(w, response)
 	}))
 }
 

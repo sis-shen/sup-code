@@ -9,12 +9,12 @@ import (
 
 // MockClient implements pkg.MCPClient for testing.
 type MockClient struct {
-	ConnectFunc    func(ctx context.Context, config pkg.MCPServerConfig) error
-	DisconnectFunc func(ctx context.Context, serverName string) error
+	ConnectFunc     func(ctx context.Context, config pkg.MCPServerConfig) error
+	DisconnectFunc  func(ctx context.Context, serverName string) error
 	ListServersFunc func() []string
-	ListToolsFunc  func(ctx context.Context, serverName string) ([]pkg.ToolSchema, error)
+	ListToolsFunc   func(ctx context.Context, serverName string) ([]pkg.ToolSchema, error)
 	ExecuteToolFunc func(ctx context.Context, serverName string, toolName string, params json.RawMessage) (pkg.ToolResult, error)
-	CloseFunc      func() error
+	CloseFunc       func() error
 }
 
 func (m *MockClient) Connect(ctx context.Context, config pkg.MCPServerConfig) error {

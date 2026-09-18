@@ -1,0 +1,1 @@
+{"name":"harness-phase-5-daemon-remote","version":"1.0.0","description":"Sup Harness 2.0 Phase 5：cmd/sup 与 cmd/supd、MCP server 暴露、优雅关闭、goreleaser 切换","author":"SupCode","tools":["readfile","writefile","editfile","bash","glob","grep"],"requires":["harness-phase-4-agent-core"]}

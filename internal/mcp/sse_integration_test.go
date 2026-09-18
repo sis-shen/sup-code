@@ -1,4 +1,4 @@
-﻿package mcp
+package mcp
 
 import (
 	"context"
@@ -10,6 +10,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
 	"github.com/supcode/supcode/pkg"
 )
 
@@ -28,7 +29,7 @@ func TestSSETransport_ConnectViaMockServer(t *testing.T) {
 	client := NewClient()
 	err := client.Connect(context.Background(), cfg)
 	require.NoError(t, err)
-	defer client.Close()
+	defer func() { _ = client.Close() }()
 
 	assert.Contains(t, client.ListServers(), "mock_mcp")
 }
@@ -44,7 +45,7 @@ func TestClient_ListToolsViaMockServer(t *testing.T) {
 	cfg := pkg.MCPServerConfig{Name: "mcp", Transport: "sse", Command: mockSrv.URL()}
 	client := NewClient()
 	require.NoError(t, client.Connect(context.Background(), cfg))
-	defer client.Close()
+	defer func() { _ = client.Close() }()
 
 	result, err := client.ListTools(context.Background(), "mcp")
 	require.NoError(t, err)
@@ -60,7 +61,7 @@ func TestClient_ExecuteToolViaMockServer(t *testing.T) {
 	cfg := pkg.MCPServerConfig{Name: "mcp", Transport: "sse", Command: mockSrv.URL()}
 	client := NewClient()
 	require.NoError(t, client.Connect(context.Background(), cfg))
-	defer client.Close()
+	defer func() { _ = client.Close() }()
 
 	params, _ := json.Marshal(map[string]string{"msg": "hello"})
 	result, err := client.ExecuteTool(context.Background(), "mcp", "echo", params)
@@ -91,7 +92,7 @@ func TestClient_Connect_ProtocolVersionMismatch(t *testing.T) {
 	err := client.Connect(context.Background(), cfg)
 	// Connection succeeds because we don't enforce version matching (just note it)
 	require.NoError(t, err)
-	defer client.Close()
+	defer func() { _ = client.Close() }()
 }
 
 func TestClient_ExecuteTool_NotConnected(t *testing.T) {
@@ -114,7 +115,7 @@ func TestBridge_RegisterAllToolsViaMockServer(t *testing.T) {
 	cfg := pkg.MCPServerConfig{Name: "bridge_mcp", Transport: "sse", Command: mockSrv.URL()}
 	client := NewClient()
 	require.NoError(t, client.Connect(context.Background(), cfg))
-	defer client.Close()
+	defer func() { _ = client.Close() }()
 
 	registry := newMockRegistry()
 	bridge := NewBridge(client, registry)
@@ -132,7 +133,7 @@ func TestBridge_ExecuteViaMockServer(t *testing.T) {
 	cfg := pkg.MCPServerConfig{Name: "bmcp", Transport: "sse", Command: mockSrv.URL()}
 	client := NewClient()
 	require.NoError(t, client.Connect(context.Background(), cfg))
-	defer client.Close()
+	defer func() { _ = client.Close() }()
 
 	registry := newMockRegistry()
 	bridge := NewBridge(client, registry)
@@ -180,7 +181,7 @@ func TestStdioTransport_WithPowerShellMCPServer(t *testing.T) {
 	if err != nil {
 		t.Skip("PowerShell MCP server not available:", err)
 	}
-	defer transport.Close()
+	defer func() { _ = transport.Close() }()
 
 	// Test initialize
 	resp, err := transport.Send(context.Background(), jsonRPCRequest{
@@ -243,7 +244,7 @@ func TestClient_ConnectViaPowerShellStdio(t *testing.T) {
 	if err != nil {
 		t.Skip("PowerShell MCP init failed:", err)
 	}
-	defer client.Close()
+	defer func() { _ = client.Close() }()
 
 	require.Contains(t, client.ListServers(), "ps_mcp")
 
@@ -296,4 +297,3 @@ func TestClient_FullLifecycleViaMockSSE(t *testing.T) {
 // suppress unused imports
 var _ = time.Second
 var _ = os.PathSeparator
-

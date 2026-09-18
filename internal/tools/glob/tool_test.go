@@ -31,7 +31,7 @@ func TestTool_Glob_Basic(t *testing.T) {
 	assert.True(t, result.Success)
 
 	var output map[string]any
-	json.Unmarshal(result.Data, &output)
+	require.NoError(t, json.Unmarshal(result.Data, &output))
 	matches, _ := output["matches"].([]any)
 	assert.Len(t, matches, 2)
 }
@@ -50,7 +50,7 @@ func TestTool_Glob_Doublestar(t *testing.T) {
 	assert.True(t, result.Success)
 
 	var output map[string]any
-	json.Unmarshal(result.Data, &output)
+	require.NoError(t, json.Unmarshal(result.Data, &output))
 	matches, _ := output["matches"].([]any)
 	assert.Len(t, matches, 2)
 }
@@ -65,7 +65,7 @@ func TestTool_Glob_NoMatch(t *testing.T) {
 	assert.True(t, result.Success)
 
 	var output map[string]any
-	json.Unmarshal(result.Data, &output)
+	require.NoError(t, json.Unmarshal(result.Data, &output))
 	assert.Equal(t, float64(0), output["count"])
 }
 
@@ -110,7 +110,7 @@ func TestTool_Glob_MaxResults(t *testing.T) {
 	assert.True(t, result.Success)
 
 	var output map[string]any
-	json.Unmarshal(result.Data, &output)
+	require.NoError(t, json.Unmarshal(result.Data, &output))
 	count, _ := output["count"].(float64)
 	assert.Equal(t, float64(3), count)
 }

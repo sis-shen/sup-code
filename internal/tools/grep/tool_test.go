@@ -31,7 +31,7 @@ func TestTool_Grep_Basic(t *testing.T) {
 	assert.True(t, result.Success)
 
 	var output map[string]any
-	json.Unmarshal(result.Data, &output)
+	require.NoError(t, json.Unmarshal(result.Data, &output))
 	matches, _ := output["matches"].([]any)
 	assert.Len(t, matches, 2)
 }
@@ -48,7 +48,7 @@ func TestTool_Grep_NoMatch(t *testing.T) {
 	assert.True(t, result.Success)
 
 	var output map[string]any
-	json.Unmarshal(result.Data, &output)
+	require.NoError(t, json.Unmarshal(result.Data, &output))
 	assert.Equal(t, float64(0), output["count"])
 }
 
@@ -64,7 +64,7 @@ func TestTool_Grep_Directory(t *testing.T) {
 	assert.True(t, result.Success)
 
 	var output map[string]any
-	json.Unmarshal(result.Data, &output)
+	require.NoError(t, json.Unmarshal(result.Data, &output))
 	matches, _ := output["matches"].([]any)
 	assert.Len(t, matches, 1)
 }
@@ -82,7 +82,7 @@ func TestTool_Grep_ContextLines(t *testing.T) {
 	assert.True(t, result.Success)
 
 	var output map[string]any
-	json.Unmarshal(result.Data, &output)
+	require.NoError(t, json.Unmarshal(result.Data, &output))
 	matches, _ := output["matches"].([]any)
 	require.Len(t, matches, 1)
 
@@ -159,7 +159,7 @@ func TestTool_Grep_BinaryFileSkip(t *testing.T) {
 	assert.True(t, result.Success)
 
 	var output map[string]any
-	json.Unmarshal(result.Data, &output)
+	require.NoError(t, json.Unmarshal(result.Data, &output))
 	assert.Equal(t, float64(0), output["count"])
 }
 
@@ -175,7 +175,7 @@ func TestTool_Grep_LiteralMatch(t *testing.T) {
 	assert.True(t, result.Success)
 
 	var output map[string]any
-	json.Unmarshal(result.Data, &output)
+	require.NoError(t, json.Unmarshal(result.Data, &output))
 	assert.Equal(t, float64(1), output["count"])
 }
 

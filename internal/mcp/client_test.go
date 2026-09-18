@@ -1,4 +1,4 @@
-﻿package mcp
+package mcp
 
 import (
 	"context"
@@ -7,6 +7,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
 	"github.com/supcode/supcode/pkg"
 )
 
@@ -97,7 +98,7 @@ func TestClient_ConcurrentConnect(t *testing.T) {
 	c := NewClient()
 	done := make(chan bool, 5)
 	for i := 0; i < 5; i++ {
-		go func(n int) {
+		go func(_ int) {
 			_ = c.Connect(context.Background(), pkg.MCPServerConfig{Name: "server", Command: "nonexistent"})
 			done <- true
 		}(i)

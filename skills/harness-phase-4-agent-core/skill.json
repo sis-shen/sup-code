@@ -1,0 +1,1 @@
+{"name":"harness-phase-4-agent-core","version":"1.0.0","description":"Sup Harness 2.0 Phase 4：Agent 心脏迁移（ReAct 循环/PlanMode/工具流水线/SubAgent），能力矩阵全绿","author":"SupCode","tools":["readfile","writefile","editfile","bash","glob","grep"],"requires":["harness-phase-3-state-interaction"]}

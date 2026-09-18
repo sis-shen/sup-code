@@ -13,14 +13,14 @@ import (
 )
 
 const (
-	maxOutputSize = 100 * 1024 // 100KB
+	maxOutputSize  = 100 * 1024 // 100KB
 	defaultTimeout = 30 * time.Second
 )
 
 // BashParams is the parsed parameters for Bash.
 type BashParams struct {
-	Command string `json:"command"`
-	Timeout *int   `json:"timeout,omitempty"` // in seconds
+	Command string  `json:"command"`
+	Timeout *int    `json:"timeout,omitempty"` // in seconds
 	WorkDir *string `json:"workdir,omitempty"`
 }
 

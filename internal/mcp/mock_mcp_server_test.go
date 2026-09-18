@@ -1,4 +1,4 @@
-﻿package mcp
+package mcp
 
 import (
 	"encoding/json"
@@ -13,20 +13,13 @@ import (
 
 // mockMCPServer simulates a real MCP server over SSE for testing.
 type mockMCPServer struct {
-	t             *testing.T
-	server        *httptest.Server
-	postEndpoint  string
-	pending       chan []byte
-	responses     []mockResponseEntry
-	tools         []pkg.ToolSchema
-	protocolVer   string
-	mu            sync.Mutex
-	receivedReqs  []jsonRPCRequest
-}
-
-type mockResponseEntry struct {
-	method  string
-	handler func(req jsonRPCRequest) jsonRPCResponse
+	t            *testing.T
+	server       *httptest.Server
+	pending      chan []byte
+	tools        []pkg.ToolSchema
+	protocolVer  string
+	mu           sync.Mutex
+	receivedReqs []jsonRPCRequest
 }
 
 // NewMockMCPServer creates a mock MCP server.
@@ -72,7 +65,7 @@ func (m *mockMCPServer) ReceivedRequests() []jsonRPCRequest {
 	return cp
 }
 
-func (m *mockMCPServer) handleSSE(w http.ResponseWriter, r *http.Request) {
+func (m *mockMCPServer) handleSSE(w http.ResponseWriter, _ *http.Request) {
 	flusher, ok := w.(http.Flusher)
 	if !ok {
 		http.Error(w, "streaming not supported", http.StatusInternalServerError)
@@ -97,7 +90,7 @@ func (m *mockMCPServer) handleSSE(w http.ResponseWriter, r *http.Request) {
 }
 
 func (m *mockMCPServer) handleMessage(w http.ResponseWriter, r *http.Request) {
-	defer r.Body.Close()
+	defer func() { _ = r.Body.Close() }()
 
 	var req jsonRPCRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
@@ -167,4 +160,3 @@ func mustMarshalJSON(v interface{}) json.RawMessage {
 	}
 	return data
 }
-

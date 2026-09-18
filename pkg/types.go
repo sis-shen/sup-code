@@ -22,7 +22,7 @@ type Message struct {
 	Role      Role       `json:"role"`
 	Content   string     `json:"content"`
 	ToolCalls []ToolCall `json:"tool_calls,omitempty"`
-	ToolID    string     `json:"tool_id,omitempty"`   // role=tool 时关联的调用 ID
+	ToolID    string     `json:"tool_id,omitempty"` // role=tool 时关联的调用 ID
 	Timestamp time.Time  `json:"timestamp"`
 }
 
@@ -98,8 +98,8 @@ const (
 
 // Action 待审核的操作
 type Action struct {
-	Type     string `json:"type"`     // "command" / "file_write" / "file_delete" / "tool" / "mcp"
-	Target   string `json:"target"`   // 命令文本 / 文件路径 / 工具名
+	Type     string `json:"type"`   // "command" / "file_write" / "file_delete" / "tool" / "mcp"
+	Target   string `json:"target"` // 命令文本 / 文件路径 / 工具名
 	ToolName string `json:"tool_name,omitempty"`
 	Params   string `json:"params,omitempty"`
 }
@@ -118,9 +118,9 @@ type StreamEvent struct {
 
 // ConfirmPrompt 确认提示
 type ConfirmPrompt struct {
-	Title        string `json:"title"`        // 简短标题
-	Message      string `json:"message"`      // 详细描述
-	ActionType   string `json:"action_type"`  // "file_write" / "command" / "tool" / "mcp"
+	Title        string `json:"title"`         // 简短标题
+	Message      string `json:"message"`       // 详细描述
+	ActionType   string `json:"action_type"`   // "file_write" / "command" / "tool" / "mcp"
 	ActionDetail string `json:"action_detail"` // 具体操作描述
 }
 
@@ -144,17 +144,17 @@ type CommandResult struct {
 
 // AgentResult Agent 执行结果
 type AgentResult struct {
-	Plan    *Plan  `json:"plan,omitempty"`   // 执行的计划
-	Summary string `json:"summary"`          // 结果摘要
-	Error   string `json:"error,omitempty"`  // 如有错误
+	Plan    *Plan  `json:"plan,omitempty"`  // 执行的计划
+	Summary string `json:"summary"`         // 结果摘要
+	Error   string `json:"error,omitempty"` // 如有错误
 }
 
 // ModelInfo 模型信息
 type ModelInfo struct {
-	ID            string `json:"id"`
-	Name          string `json:"name"`
-	MaxTokens     int    `json:"max_tokens"`
-	SupportsVision bool  `json:"supports_vision"`
+	ID             string `json:"id"`
+	Name           string `json:"name"`
+	MaxTokens      int    `json:"max_tokens"`
+	SupportsVision bool   `json:"supports_vision"`
 }
 
 // ToolSchema 工具的参数 Schema（JSON Schema 格式，供 LLM function calling）
@@ -186,16 +186,16 @@ type SubTaskResult struct {
 // MemoryCard 记忆卡片（压缩后的对话摘要）
 type MemoryCard struct {
 	ID        string    `json:"id"`
-	Content   string    `json:"content"`    // 摘要内容
-	Category  string    `json:"category"`   // "decision" / "error" / "preference" / "context"
+	Content   string    `json:"content"`  // 摘要内容
+	Category  string    `json:"category"` // "decision" / "error" / "preference" / "context"
 	CreatedAt time.Time `json:"created_at"`
 }
 
 // MemoryEntry 记忆条目
 type MemoryEntry struct {
 	ID        string    `json:"id"`
-	Scope     string    `json:"scope"`     // "project" / "user"
-	Category  string    `json:"category"`  // "structure" / "convention" / "preference" / "task"
+	Scope     string    `json:"scope"`    // "project" / "user"
+	Category  string    `json:"category"` // "structure" / "convention" / "preference" / "task"
 	Content   string    `json:"content"`
 	Embedding []float32 `json:"embedding,omitempty"`
 	UpdatedAt time.Time `json:"updated_at"`

@@ -1,0 +1,1 @@
+{"name":"harness-phase-2-leaf-plugins","version":"1.0.0","description":"Sup Harness 2.0 Phase 2：叶子插件化（llm/tools/mcp/skill/permission/memory/worktree/hooks），逻辑零改动、大规模并行迁移","author":"SupCode","tools":["readfile","writefile","editfile","bash","glob","grep"],"requires":["harness-phase-1-kernel"]}

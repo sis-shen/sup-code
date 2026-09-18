@@ -7,6 +7,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
 	"github.com/supcode/supcode/internal/tools"
 	"github.com/supcode/supcode/internal/tools/bash"
 	"github.com/supcode/supcode/pkg"
@@ -27,7 +28,7 @@ func TestBridge_UnifiedToolPool_WithRealRegistry(t *testing.T) {
 	client := NewClient()
 	require.NoError(t, client.Connect(context.Background(),
 		pkg.MCPServerConfig{Name: "mock", Transport: "sse", Command: mockSrv.URL()}))
-	defer client.Close()
+	defer func() { _ = client.Close() }()
 
 	require.NoError(t, NewBridge(client, reg).RegisterAllTools(context.Background()))
 
@@ -53,7 +54,7 @@ func TestConnectConfigured_GracefulDegradation(t *testing.T) {
 	}
 
 	client := NewClient()
-	defer client.Close()
+	defer func() { _ = client.Close() }()
 
 	results := ConnectConfigured(context.Background(), client, servers)
 	require.Len(t, results, 2)

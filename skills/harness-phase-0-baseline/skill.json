@@ -1,0 +1,1 @@
+{"name":"harness-phase-0-baseline","version":"1.0.0","description":"Sup Harness 2.0 Phase 0：v1 基线冻结、2.0 目录骨架、CI 骨架、分支/提交/文档规范模板","author":"SupCode","tools":["readfile","writefile","editfile","bash","glob","grep"],"requires":[]}

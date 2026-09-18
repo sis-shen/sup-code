@@ -29,7 +29,7 @@ type LLMClient struct {
 
 func NewLLMClient(cfg Config) *LLMClient {
 	return &LLMClient{
-		cfg: cfg,
+		cfg:        cfg,
 		httpClient: &http.Client{Timeout: 60 * time.Second},
 	}
 }
@@ -101,7 +101,7 @@ func (c *LLMClient) Models(ctx context.Context) ([]pkg.ModelInfo, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 	if resp.StatusCode != http.StatusOK {
 		return nil, fmt.Errorf("list models: %s", resp.Status)
 	}
@@ -159,7 +159,7 @@ func (c *LLMClient) buildChatRequest(systemPrompt string, messages []pkg.Message
 		req.Tools = make([]openAITool, 0, len(tools))
 		for _, t := range tools {
 			req.Tools = append(req.Tools, openAITool{
-				Type: "function",
+				Type:     "function",
 				Function: openAIFunctionDef{Name: t.Name, Description: t.Description, Parameters: t.Parameters},
 			})
 		}
@@ -190,7 +190,7 @@ func (c *LLMClient) doChatRequest(ctx context.Context, reqBody []byte, eventCh c
 	if err != nil {
 		return fmt.Errorf("http request: %w", err)
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 	if resp.StatusCode == http.StatusTooManyRequests {
 		retryAfter := parseRetryAfter(resp.Header.Get("Retry-After"))
 		return &pkg.ErrRetryable{Cause: fmt.Errorf("rate limited: %s", resp.Status), RetryAfter: retryAfter}
@@ -202,8 +202,8 @@ func (c *LLMClient) doChatRequest(ctx context.Context, reqBody []byte, eventCh c
 	return c.parseSSEStream(ctx, resp.Body, eventCh)
 }
 
-//Fixed SSE parser: process delta content before finish_reason, return after done
-func (c *LLMClient) parseSSEStream(ctx context.Context, body io.Reader, eventCh chan<- pkg.StreamEvent) error {
+// Fixed SSE parser: process delta content before finish_reason, return after done
+func (c *LLMClient) parseSSEStream(_ context.Context, body io.Reader, eventCh chan<- pkg.StreamEvent) error {
 	scanner := bufio.NewScanner(body)
 	scanner.Buffer(make([]byte, 0, 64*1024), 1024*1024)
 	for scanner.Scan() {
@@ -231,15 +231,16 @@ func (c *LLMClient) parseSSEStream(ctx context.Context, body io.Reader, eventCh 
 						args = "{}"
 					}
 					eventCh <- pkg.StreamEvent{
-						Type: "tool_call",
+						Type:     "tool_call",
 						ToolCall: &pkg.ToolCall{ID: tc.ID, Name: tc.Function.Name, Params: json.RawMessage(args)},
 					}
 				}
 				// Then check finish reason and return to prevent double-done
 				if choice.FinishReason != "" {
-					if choice.FinishReason == "stop" || choice.FinishReason == "tool_calls" {
+					switch choice.FinishReason {
+					case "stop", "tool_calls":
 						eventCh <- pkg.StreamEvent{Type: "done"}
-					} else if choice.FinishReason == "length" {
+					case "length":
 						eventCh <- pkg.StreamEvent{Type: "error", Error: "response exceeded max tokens"}
 					}
 					return nil
@@ -298,8 +299,8 @@ type openAIMessage struct {
 }
 
 type openAIToolCall struct {
-	ID       string            `json:"id"`
-	Type     string            `json:"type"`
+	ID       string             `json:"id"`
+	Type     string             `json:"type"`
 	Function openAIFunctionCall `json:"function"`
 }
 
@@ -309,7 +310,7 @@ type openAIFunctionCall struct {
 }
 
 type openAITool struct {
-	Type     string           `json:"type"`
+	Type     string            `json:"type"`
 	Function openAIFunctionDef `json:"function"`
 }
 
@@ -329,9 +330,9 @@ type openAIChatChunk struct {
 }
 
 type openAIChoice struct {
-	Index        int        `json:"index"`
+	Index        int         `json:"index"`
 	Delta        openAIDelta `json:"delta"`
-	FinishReason string     `json:"finish_reason"`
+	FinishReason string      `json:"finish_reason"`
 }
 
 type openAIDelta struct {

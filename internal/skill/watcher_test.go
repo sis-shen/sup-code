@@ -16,7 +16,7 @@ func TestNewWatcher(t *testing.T) {
 	w, err := NewWatcher(loader, []string{dir})
 	require.NoError(t, err)
 	require.NotNil(t, w)
-	defer w.Close()
+	defer func() { _ = w.Close() }()
 }
 
 func TestDetectSkillName(t *testing.T) {
@@ -25,11 +25,11 @@ func TestDetectSkillName(t *testing.T) {
 
 	w, err := NewWatcher(loader, []string{dir})
 	require.NoError(t, err)
-	defer w.Close()
+	defer func() { _ = w.Close() }()
 
-	os.MkdirAll(filepath.Join(dir, "my-skill", "prompts"), 0755)
-	os.WriteFile(filepath.Join(dir, "my-skill", "skill.json"), []byte("{}"), 0644)
-	os.WriteFile(filepath.Join(dir, "my-skill", "prompts", "system.md"), []byte("content"), 0644)
+	require.NoError(t, os.MkdirAll(filepath.Join(dir, "my-skill", "prompts"), 0755))
+	require.NoError(t, os.WriteFile(filepath.Join(dir, "my-skill", "skill.json"), []byte("{}"), 0644))
+	require.NoError(t, os.WriteFile(filepath.Join(dir, "my-skill", "prompts", "system.md"), []byte("content"), 0644))
 
 	name := w.detectSkillName(filepath.Join(dir, "my-skill", "skill.json"))
 	assert.Equal(t, "my-skill", name)
@@ -47,7 +47,7 @@ func TestDetectSkillNameOutsideWatch(t *testing.T) {
 
 	w, err := NewWatcher(loader, []string{dir})
 	require.NoError(t, err)
-	defer w.Close()
+	defer func() { _ = w.Close() }()
 
 	name := w.detectSkillName("/some/other/path/file.txt")
 	assert.Empty(t, name)
@@ -72,7 +72,7 @@ func TestWatcherStartDoesNotPanic(t *testing.T) {
 	require.NoError(t, err)
 
 	w.Start()
-	w.Close()
+	_ = w.Close()
 }
 
 func TestWatcherHandleEvent(t *testing.T) {
@@ -81,18 +81,18 @@ func TestWatcherHandleEvent(t *testing.T) {
 
 	w, err := NewWatcher(loader, []string{dir})
 	require.NoError(t, err)
-	defer w.Close()
+	defer func() { _ = w.Close() }()
 
 	w.Start()
 
 	// Create a skill directory
-	os.MkdirAll(filepath.Join(dir, "test-skill", "prompts"), 0755)
-	os.WriteFile(filepath.Join(dir, "test-skill", "skill.json"), []byte(`{"name":"test-skill","version":"1.0.0","description":"test"}`), 0644)
+	require.NoError(t, os.MkdirAll(filepath.Join(dir, "test-skill", "prompts"), 0755))
+	require.NoError(t, os.WriteFile(filepath.Join(dir, "test-skill", "skill.json"), []byte(`{"name":"test-skill","version":"1.0.0","description":"test"}`), 0644))
 
 	// Load it once to populate cache
 	_, err = loader.Load("test-skill")
 	require.NoError(t, err)
 
 	// Modify the skill file - this should trigger cache invalidation via watcher
-	os.WriteFile(filepath.Join(dir, "test-skill", "prompts", "system.md"), []byte("updated content"), 0644)
+	require.NoError(t, os.WriteFile(filepath.Join(dir, "test-skill", "prompts", "system.md"), []byte("updated content"), 0644))
 }

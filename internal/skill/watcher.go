@@ -2,6 +2,8 @@ package skill
 
 import (
 	"log/slog"
+	"sync"
+	"sync/atomic"
 
 	"github.com/fsnotify/fsnotify"
 )
@@ -16,6 +18,9 @@ type Watcher struct {
 	watcher   *fsnotify.Watcher
 	Changes   chan ChangeEvent
 	dirs      []string
+	done      chan struct{}
+	started   atomic.Bool
+	closeOnce sync.Once
 }
 
 func NewWatcher(loader *SkillLoader, dirs []string) (*Watcher, error) {
@@ -35,11 +40,16 @@ func NewWatcher(loader *SkillLoader, dirs []string) (*Watcher, error) {
 		watcher: w,
 		Changes: make(chan ChangeEvent, 100),
 		dirs:    dirs,
+		done:    make(chan struct{}),
 	}, nil
 }
 
 func (w *Watcher) Start() {
+	if !w.started.CompareAndSwap(false, true) {
+		return
+	}
 	go func() {
+		defer close(w.done)
 		for {
 			select {
 			case event, ok := <-w.watcher.Events:
@@ -100,6 +110,13 @@ func (w *Watcher) detectSkillName(path string) string {
 }
 
 func (w *Watcher) Close() error {
-	close(w.Changes)
-	return w.watcher.Close()
+	var err error
+	w.closeOnce.Do(func() {
+		err = w.watcher.Close()
+		if w.started.Load() {
+			<-w.done
+		}
+		close(w.Changes)
+	})
+	return err
 }

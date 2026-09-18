@@ -10,17 +10,16 @@ import (
 )
 
 const (
-	defaultSegSize    = 10   // messages per segment in Map phase
-	defaultKeepRecent = 20   // recent messages to preserve verbatim
+	defaultSegSize    = 10 // messages per segment in Map phase
+	defaultKeepRecent = 20 // recent messages to preserve verbatim
 	mapPromptTPL      = "Summarize the following conversation segment concisely, preserving any error messages, user preferences, and irreversible operations:\n\n"
 	reducePromptTPL   = "Combine the following segment summaries into a single coherent summary. Keep all important context including:\n- Errors and failures\n- User preferences and decisions\n- Irreversible operations performed\n- Key architectural or design decisions\n\n"
 )
 
 // Compressor performs Map-Reduce context compression using an LLM.
 type Compressor struct {
-	llm       pkg.LLMClient
-	segSize   int
-	mu        sync.Mutex
+	llm     pkg.LLMClient
+	segSize int
 }
 
 // NewCompressor creates a new Compressor.
@@ -146,10 +145,10 @@ func (c *Compressor) formatSegment(messages []pkg.Message) string {
 		b.WriteString("\n")
 
 		for _, tc := range msg.ToolCalls {
-			b.WriteString(fmt.Sprintf("  [tool call: %s(%s)]\n", tc.Name, string(tc.Params)))
+			fmt.Fprintf(&b, "  [tool call: %s(%s)]\n", tc.Name, string(tc.Params))
 		}
 		if msg.ToolID != "" {
-			b.WriteString(fmt.Sprintf("  [tool result for: %s]\n", msg.ToolID))
+			fmt.Fprintf(&b, "  [tool result for: %s]\n", msg.ToolID)
 		}
 	}
 	return b.String()

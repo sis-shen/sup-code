@@ -44,7 +44,9 @@ func ListAllSkills() error {
 	}
 
 	w := tabwriter.NewWriter(os.Stdout, 0, 0, 3, ' ', 0)
-	fmt.Fprintln(w, "Name\tVersion\tDescription\tSource")
+	if _, err := fmt.Fprintln(w, "Name\tVersion\tDescription\tSource"); err != nil {
+		return err
+	}
 	for _, info := range infos {
 		source := "builtin"
 		switch info.SourceLevel {
@@ -53,9 +55,13 @@ func ListAllSkills() error {
 		case 2:
 			source = "project"
 		}
-		fmt.Fprintf(w, "%s\t%s\t%s\t%s\n", info.Name, info.Version, info.Description, source)
+		if _, err := fmt.Fprintf(w, "%s\t%s\t%s\t%s\n", info.Name, info.Version, info.Description, source); err != nil {
+			return err
+		}
 	}
-	w.Flush()
+	if err := w.Flush(); err != nil {
+		return err
+	}
 	return nil
 }
 

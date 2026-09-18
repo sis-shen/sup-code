@@ -7,6 +7,8 @@ import (
 	"sync"
 	"testing"
 
+	"github.com/stretchr/testify/require"
+
 	"github.com/supcode/supcode/pkg"
 )
 
@@ -17,7 +19,7 @@ func setupAuditLogger(t *testing.T) *AuditLogger {
 	if err != nil {
 		t.Fatalf("NewAuditLogger failed: %v", err)
 	}
-	t.Cleanup(func() { a.Close() })
+	t.Cleanup(func() { require.NoError(t, a.Close()) })
 	return a
 }
 

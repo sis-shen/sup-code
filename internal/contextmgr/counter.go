@@ -2,6 +2,7 @@ package contextmgr
 
 import (
 	"github.com/pkoukk/tiktoken-go"
+
 	"github.com/supcode/supcode/pkg"
 )
 

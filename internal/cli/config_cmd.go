@@ -35,7 +35,9 @@ func newConfigGetCmd() *cobra.Command {
 			if val == nil {
 				return fmt.Errorf("config key not found: %s", key)
 			}
-			fmt.Fprintln(cmd.OutOrStdout(), val)
+			if _, err := fmt.Fprintln(cmd.OutOrStdout(), val); err != nil {
+				return err
+			}
 			return nil
 		},
 	}
@@ -60,7 +62,9 @@ func newConfigSetCmd() *cobra.Command {
 				return fmt.Errorf("save config: %w", err)
 			}
 
-			fmt.Fprintf(cmd.OutOrStdout(), "Set %s = %s\n", key, value)
+			if _, err := fmt.Fprintf(cmd.OutOrStdout(), "Set %s = %s\n", key, value); err != nil {
+				return err
+			}
 			return nil
 		},
 	}
@@ -83,7 +87,9 @@ func newConfigListCmd() *cobra.Command {
 			sort.Strings(keys)
 
 			for _, k := range keys {
-				fmt.Fprintf(cmd.OutOrStdout(), "%s = %v\n", k, settings[k])
+				if _, err := fmt.Fprintf(cmd.OutOrStdout(), "%s = %v\n", k, settings[k]); err != nil {
+					return err
+				}
 			}
 			return nil
 		},

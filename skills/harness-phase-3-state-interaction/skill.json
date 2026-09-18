@@ -1,0 +1,1 @@
+{"name":"harness-phase-3-state-interaction","version":"1.0.0","description":"Sup Harness 2.0 Phase 3：会话/上下文/TUI/CLI 迁移，恢复可用产品形态","author":"SupCode","tools":["readfile","writefile","editfile","bash","glob","grep"],"requires":["harness-phase-2-leaf-plugins"]}

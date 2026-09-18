@@ -1,7 +1,6 @@
 package mcp
 
 import (
-	"github.com/supcode/supcode/pkg"
 	"bufio"
 	"context"
 	"encoding/json"
@@ -10,6 +9,8 @@ import (
 	"os/exec"
 	"sync"
 	"sync/atomic"
+
+	"github.com/supcode/supcode/pkg"
 )
 
 // stdioTransport implements Transport via a child process stdin/stdout.
@@ -24,9 +25,9 @@ type stdioTransport struct {
 	pending map[int]chan jsonRPCResponse
 	closed  bool
 
-	retries   int
+	retries    int
 	maxRetries int
-	config    pkg.MCPServerConfig
+	config     pkg.MCPServerConfig
 }
 
 // newStdioTransport starts a new stdio transport.
@@ -73,10 +74,12 @@ func (t *stdioTransport) startProcess(ctx context.Context) error {
 		return fmt.Errorf("start process: %w", err)
 	}
 
+	t.mu.Lock()
 	t.cmd = cmd
 	t.stdin = stdin
 	t.stdout = stdout
 	t.stderr = stderr
+	t.mu.Unlock()
 	return nil
 }
 
@@ -161,9 +164,13 @@ func (t *stdioTransport) Send(ctx context.Context, req jsonRPCRequest) (jsonRPCR
 		return jsonRPCResponse{}, fmt.Errorf("transport closed")
 	}
 	t.pending[req.ID] = respCh
+	stdin := t.stdin
 	t.mu.Unlock()
 
-	if _, err := t.stdin.Write(append(data, '\n')); err != nil {
+	if stdin == nil {
+		return jsonRPCResponse{}, fmt.Errorf("transport not started")
+	}
+	if _, err := stdin.Write(append(data, '\n')); err != nil {
 		return jsonRPCResponse{}, fmt.Errorf("write stdin: %w", err)
 	}
 
@@ -181,14 +188,14 @@ func (t *stdioTransport) Send(ctx context.Context, req jsonRPCRequest) (jsonRPCR
 func (t *stdioTransport) Close() error {
 	t.mu.Lock()
 	t.closed = true
+	cmd := t.cmd
 	t.mu.Unlock()
 
-	if t.cmd != nil && t.cmd.Process != nil {
-		t.cmd.Process.Kill()
+	if cmd != nil && cmd.Process != nil {
+		_ = cmd.Process.Kill()
 	}
 	return nil
 }
 
 // compile-time check
 var _ Transport = (*stdioTransport)(nil)
-

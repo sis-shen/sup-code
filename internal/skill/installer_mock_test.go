@@ -1,39 +1,56 @@
-﻿package skill
+package skill
 
 import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"runtime"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
+// fakeCommandOK returns a platform-native command that exits successfully.
+func fakeCommandOK() *exec.Cmd {
+	if runtime.GOOS == "windows" {
+		return exec.Command("cmd", "/c", "exit", "0")
+	}
+	return exec.Command("true")
+}
+
+// fakeCommandFail returns a platform-native command that exits non-zero.
+func fakeCommandFail() *exec.Cmd {
+	if runtime.GOOS == "windows" {
+		return exec.Command("cmd", "/c", "exit", "1")
+	}
+	return exec.Command("false")
+}
+
 func fakeExecCommandWriteToLastArg(files map[string]string) func(string, ...string) *exec.Cmd {
 	return func(cmd string, args ...string) *exec.Cmd {
 		if len(args) == 0 {
-			return exec.Command("cmd", "/c", "type", "NUL")
+			return fakeCommandOK()
 		}
 		outputDir := args[len(args)-1]
 		for relPath, content := range files {
 			fullPath := filepath.Join(outputDir, relPath)
-			os.MkdirAll(filepath.Dir(fullPath), 0755)
-			os.WriteFile(fullPath, []byte(content), 0644)
+			_ = os.MkdirAll(filepath.Dir(fullPath), 0755)
+			_ = os.WriteFile(fullPath, []byte(content), 0644)
 		}
-		return exec.Command("cmd", "/c", "type", "NUL")
+		return fakeCommandOK()
 	}
 }
 
 func fakeExecCommandFail(cmd string, args ...string) *exec.Cmd {
-	return exec.Command("cmd", "/c", "exit", "1")
+	return fakeCommandFail()
 }
 
 func TestInstallFromGit_Success(t *testing.T) {
 	target := t.TempDir()
 	inst := NewInstaller(target)
 	inst.execCommand = fakeExecCommandWriteToLastArg(map[string]string{
-		"skill.json":         `{"name":"git-skill","version":"1.0.0","description":"from git"}`,
+		"skill.json":        `{"name":"git-skill","version":"1.0.0","description":"from git"}`,
 		"prompts/system.md": "git prompt content",
 	})
 	err := inst.InstallFromGit("https://github.com/fake/repo.git")
@@ -54,17 +71,18 @@ func TestInstallFromNPM_Success(t *testing.T) {
 	inst := NewInstaller(target)
 	inst.execCommand = func(cmd string, args ...string) *exec.Cmd {
 		outputDir := args[len(args)-1]
-		if cmd == "npm" {
+		switch cmd {
+		case "npm":
 			tarFile := filepath.Join(outputDir, "package-1.0.0.tgz")
-			os.WriteFile(tarFile, []byte("fake"), 0644)
-		} else if cmd == "tar" {
+			_ = os.WriteFile(tarFile, []byte("fake"), 0644)
+		case "tar":
 			pkgDir := filepath.Join(outputDir, "package")
-			os.MkdirAll(filepath.Join(pkgDir, "prompts"), 0755)
+			_ = os.MkdirAll(filepath.Join(pkgDir, "prompts"), 0755)
 			manifest := `{"name":"npm-skill","version":"1.0.0","description":"from npm"}`
-			os.WriteFile(filepath.Join(pkgDir, "skill.json"), []byte(manifest), 0644)
-			os.WriteFile(filepath.Join(pkgDir, "prompts", "system.md"), []byte("prompt"), 0644)
+			_ = os.WriteFile(filepath.Join(pkgDir, "skill.json"), []byte(manifest), 0644)
+			_ = os.WriteFile(filepath.Join(pkgDir, "prompts", "system.md"), []byte("prompt"), 0644)
 		}
-		return exec.Command("cmd", "/c", "type", "NUL")
+		return fakeCommandOK()
 	}
 	err := inst.InstallFromNPM("fake-npm-package")
 	require.NoError(t, err)

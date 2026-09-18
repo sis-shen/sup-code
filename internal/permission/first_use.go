@@ -31,7 +31,9 @@ func NewFirstUseTracker(dbPath string) (*FirstUseTracker, error) {
 		return nil, fmt.Errorf("open first_use db: %w", err)
 	}
 	if _, err := db.Exec(firstUseTableDDL); err != nil {
-		db.Close()
+		if closeErr := db.Close(); closeErr != nil {
+			log.Printf("[FIRST_USE] close db after table creation failure: %v", closeErr)
+		}
 		return nil, fmt.Errorf("create first_use table: %w", err)
 	}
 	t := &FirstUseTracker{db: db, authorized: make(map[string]bool)}
@@ -46,7 +48,7 @@ func (t *FirstUseTracker) load() error {
 	if err != nil {
 		return err
 	}
-	defer rows.Close()
+	defer func() { _ = rows.Close() }()
 	for rows.Next() {
 		var name string
 		if err := rows.Scan(&name); err != nil {

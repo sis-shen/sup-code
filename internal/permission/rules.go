@@ -11,12 +11,12 @@ const (
 	RuleIDDenyForkBomb    = "deny-fork-bomb"
 	RuleIDDenyDevSD       = "deny-dev-sd"
 
-	RuleIDAskEtc      = "ask-etc"
-	RuleIDAskSSH      = "ask-ssh"
-	RuleIDAskBoot     = "ask-boot"
-	RuleIDAskSys      = "ask-sys"
-	RuleIDAskProc     = "ask-proc"
-	RuleIDAskWindows  = "ask-windows"
+	RuleIDAskEtc     = "ask-etc"
+	RuleIDAskSSH     = "ask-ssh"
+	RuleIDAskBoot    = "ask-boot"
+	RuleIDAskSys     = "ask-sys"
+	RuleIDAskProc    = "ask-proc"
+	RuleIDAskWindows = "ask-windows"
 )
 
 // DefaultRules returns the built-in security rules.

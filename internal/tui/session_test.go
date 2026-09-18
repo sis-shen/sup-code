@@ -10,6 +10,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
 	"github.com/supcode/supcode/pkg"
 )
 
@@ -20,7 +21,7 @@ func newTestSessionManager(t *testing.T) *SessionManager {
 	require.NoError(t, err)
 	t.Cleanup(func() {
 		_ = sm.CloseAll()
-		os.Remove(dbPath)
+		_ = os.Remove(dbPath)
 	})
 	return sm
 }

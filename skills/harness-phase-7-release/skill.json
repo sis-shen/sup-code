@@ -1,0 +1,1 @@
+{"name":"harness-phase-7-release","version":"1.0.0","description":"Sup Harness 2.0 Phase 7：清理 v1 残留、文档/基准、CHANGELOG、v2.0.0 发布","author":"SupCode","tools":["readfile","writefile","editfile","bash","glob","grep"],"requires":["harness-phase-6-dsh-compat"]}

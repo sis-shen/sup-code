@@ -13,8 +13,9 @@ import (
 )
 
 // makeLoader 在临时目录构造一个包含单个技能的 SkillLoader。
-func makeLoader(t *testing.T, name, version, description, instructions string) *skill.SkillLoader {
+func makeLoader(t *testing.T, version, description, instructions string) *skill.SkillLoader {
 	t.Helper()
+	const name = "code-review"
 	dir := t.TempDir()
 	skillDir := filepath.Join(dir, name)
 	if err := os.MkdirAll(filepath.Join(skillDir, "prompts"), 0755); err != nil {
@@ -37,7 +38,7 @@ func makeLoader(t *testing.T, name, version, description, instructions string) *
 }
 
 func TestTool_Schema_And_Name(t *testing.T) {
-	tool := New(makeLoader(t, "code-review", "1.0.0", "desc", "do it"))
+	tool := New(makeLoader(t, "1.0.0", "desc", "do it"))
 	if tool.Name() != "skill" {
 		t.Errorf("Name() = %q, want %q", tool.Name(), "skill")
 	}
@@ -50,7 +51,7 @@ func TestTool_Schema_And_Name(t *testing.T) {
 }
 
 func TestTool_List_ReturnsDiscoveredSkills(t *testing.T) {
-	tool := New(makeLoader(t, "code-review", "1.0.0", "review code", "instructions"))
+	tool := New(makeLoader(t, "1.0.0", "review code", "instructions"))
 	res, err := tool.Execute(context.Background(), json.RawMessage(`{"action":"list"}`))
 	if err != nil {
 		t.Fatalf("Execute(list): %v", err)
@@ -65,7 +66,7 @@ func TestTool_List_ReturnsDiscoveredSkills(t *testing.T) {
 
 func TestTool_Load_ReturnsInstructions(t *testing.T) {
 	const instructions = "## Steps\n1. read the diff\n2. comment"
-	tool := New(makeLoader(t, "code-review", "1.2.3", "review code", instructions))
+	tool := New(makeLoader(t, "1.2.3", "review code", instructions))
 
 	res, err := tool.Execute(context.Background(), json.RawMessage(`{"action":"load","name":"code-review"}`))
 	if err != nil {
@@ -96,7 +97,7 @@ func TestTool_Load_ReturnsInstructions(t *testing.T) {
 }
 
 func TestTool_Load_MissingName_Errors(t *testing.T) {
-	tool := New(makeLoader(t, "code-review", "1.0.0", "d", "i"))
+	tool := New(makeLoader(t, "1.0.0", "d", "i"))
 	res, err := tool.Execute(context.Background(), json.RawMessage(`{"action":"load"}`))
 	if err == nil {
 		t.Fatal("expected error when name missing")
@@ -107,7 +108,7 @@ func TestTool_Load_MissingName_Errors(t *testing.T) {
 }
 
 func TestTool_Load_UnknownSkill_Errors(t *testing.T) {
-	tool := New(makeLoader(t, "code-review", "1.0.0", "d", "i"))
+	tool := New(makeLoader(t, "1.0.0", "d", "i"))
 	res, err := tool.Execute(context.Background(), json.RawMessage(`{"action":"load","name":"nope"}`))
 	if err == nil {
 		t.Fatal("expected error for unknown skill")
@@ -118,7 +119,7 @@ func TestTool_Load_UnknownSkill_Errors(t *testing.T) {
 }
 
 func TestTool_UnknownAction_Errors(t *testing.T) {
-	tool := New(makeLoader(t, "code-review", "1.0.0", "d", "i"))
+	tool := New(makeLoader(t, "1.0.0", "d", "i"))
 	res, err := tool.Execute(context.Background(), json.RawMessage(`{"action":"frobnicate"}`))
 	if err == nil {
 		t.Fatal("expected error for unknown action")
@@ -129,7 +130,7 @@ func TestTool_UnknownAction_Errors(t *testing.T) {
 }
 
 func TestTool_InvalidJSON_Errors(t *testing.T) {
-	tool := New(makeLoader(t, "code-review", "1.0.0", "d", "i"))
+	tool := New(makeLoader(t, "1.0.0", "d", "i"))
 	res, err := tool.Execute(context.Background(), json.RawMessage(`{not json`))
 	if err == nil {
 		t.Fatal("expected error for invalid JSON")
@@ -140,7 +141,7 @@ func TestTool_InvalidJSON_Errors(t *testing.T) {
 }
 
 func TestTool_Execute_RespectsContextCancellation(t *testing.T) {
-	tool := New(makeLoader(t, "code-review", "1.0.0", "d", "i"))
+	tool := New(makeLoader(t, "1.0.0", "d", "i"))
 	ctx, cancel := context.WithCancel(context.Background())
 	cancel()
 	res, err := tool.Execute(ctx, json.RawMessage(`{"action":"list"}`))

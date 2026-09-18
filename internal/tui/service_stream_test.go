@@ -9,6 +9,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
 	"github.com/supcode/supcode/pkg"
 )
 
@@ -17,7 +18,7 @@ func setupTestService(t *testing.T) *Service {
 	dbPath := filepath.Join(t.TempDir(), "test_svc_s.json")
 	sm, err := NewSessionManager(dbPath)
 	require.NoError(t, err)
-	t.Cleanup(func() { _ = sm.CloseAll(); os.Remove(dbPath) })
+	t.Cleanup(func() { _ = sm.CloseAll(); _ = os.Remove(dbPath) })
 	return NewService(sm)
 }
 

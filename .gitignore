@@ -51,6 +51,11 @@ worktree_cov
 
 # Local scratch / pre-existing untracked files
 SMOKE.md
-tasks/
-tests/fixturess/
-}
+
+# Task artifacts: track phase boards + phase acceptance reports, ignore scratch.
+# (negation requires un-ignoring the parent dirs first)
+tasks/*
+!tasks/phase-*/
+!tasks/acceptance/
+tasks/acceptance/*
+!tasks/acceptance/phase-*.md

@@ -1,4 +1,4 @@
-﻿package mcp
+package mcp
 
 import (
 	"context"
@@ -9,6 +9,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
 	"github.com/supcode/supcode/pkg"
 )
 
@@ -18,13 +19,13 @@ func getEchoServerCommand(t *testing.T) (string, []string) {
 		script := "@echo off\r\nsetlocal enabledelayedexpansion\r\nset /p line=\r\nif defined line echo !line!\r\n"
 		dir := t.TempDir()
 		scriptPath := filepath.Join(dir, "echo.cmd")
-		os.WriteFile(scriptPath, []byte(script), 0644)
+		require.NoError(t, os.WriteFile(scriptPath, []byte(script), 0644))
 		return scriptPath, nil
 	}
 	dir := t.TempDir()
 	scriptPath := filepath.Join(dir, "echo.sh")
 	script := "#!/bin/sh\nwhile read line; do echo \"$line\"; done"
-	os.WriteFile(scriptPath, []byte(script), 0755)
+	require.NoError(t, os.WriteFile(scriptPath, []byte(script), 0755))
 	return "sh", []string{scriptPath}
 }
 
@@ -61,7 +62,7 @@ func TestStdioTransport_SendReceive(t *testing.T) {
 	if err != nil {
 		t.Skip("could not start transport:", err)
 	}
-	defer transport.Close()
+	defer func() { _ = transport.Close() }()
 
 	resp, err := transport.Send(context.Background(), jsonRPCRequest{
 		Method: "test/method",
@@ -83,7 +84,7 @@ func TestStdioTransport_Concurrency(t *testing.T) {
 	if err != nil {
 		t.Skip("could not start transport")
 	}
-	defer transport.Close()
+	defer func() { _ = transport.Close() }()
 
 	done := make(chan bool, 5)
 	for i := 0; i < 5; i++ {

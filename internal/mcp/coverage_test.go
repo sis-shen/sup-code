@@ -1,4 +1,4 @@
-﻿package mcp
+package mcp
 
 import (
 	"bytes"
@@ -9,6 +9,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
 	"github.com/supcode/supcode/pkg"
 )
 
@@ -88,4 +89,3 @@ func TestMCPToolAdapter_WithMockClient(t *testing.T) {
 func TestClientDefaultConfig(t *testing.T) {
 	assert.Equal(t, "2024-11-05", protocolVersion)
 }
-

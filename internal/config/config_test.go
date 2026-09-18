@@ -5,13 +5,15 @@ import (
 	"path/filepath"
 	"testing"
 
+	"github.com/stretchr/testify/require"
+
 	"github.com/supcode/supcode/pkg"
 )
 
 func TestDefaultValues(t *testing.T) {
 	t.Setenv("SUPCODE_LLM_MODEL", "gpt-4o")
 	m := NewManager()
-	m.Set(ConfigKeyLLMAPIKey, "test-key")
+	require.NoError(t, m.Set(ConfigKeyLLMAPIKey, "test-key"))
 	if err := m.Load(); err != nil {
 		t.Fatalf("Load() failed: %v", err)
 	}
@@ -42,7 +44,7 @@ func TestFileLoading(t *testing.T) {
 		t.Fatal(err)
 	}
 	m := NewManager()
-	m.Set(ConfigKeyLLMAPIKey, "test-key")
+	require.NoError(t, m.Set(ConfigKeyLLMAPIKey, "test-key"))
 	m.v.AddConfigPath(dir)
 	m.v.SetConfigName("config")
 	m.v.SetConfigType("yaml")
@@ -66,11 +68,11 @@ func TestEnvOverride(t *testing.T) {
 
 	oldModel := os.Getenv("SUPCODE_LLM_MODEL")
 	oldKey := os.Getenv("SUPCODE_LLM_API_KEY")
-	os.Setenv("SUPCODE_LLM_MODEL", "gpt-4o-mini")
-	os.Setenv("SUPCODE_LLM_API_KEY", "key-from-env")
+	require.NoError(t, os.Setenv("SUPCODE_LLM_MODEL", "gpt-4o-mini"))
+	require.NoError(t, os.Setenv("SUPCODE_LLM_API_KEY", "key-from-env"))
 	defer func() {
-		os.Setenv("SUPCODE_LLM_MODEL", oldModel)
-		os.Setenv("SUPCODE_LLM_API_KEY", oldKey)
+		_ = os.Setenv("SUPCODE_LLM_MODEL", oldModel)
+		_ = os.Setenv("SUPCODE_LLM_API_KEY", oldKey)
 	}()
 
 	m := NewManager()
@@ -91,12 +93,12 @@ func TestEnvOverride(t *testing.T) {
 
 func TestPriorityChain(t *testing.T) {
 	m := NewManager()
-	m.Set(ConfigKeyLLMModel, "cli-value")
-	m.Set(ConfigKeyLLMAPIKey, "cli-key")
+	require.NoError(t, m.Set(ConfigKeyLLMModel, "cli-value"))
+	require.NoError(t, m.Set(ConfigKeyLLMAPIKey, "cli-key"))
 
 	oldModel := os.Getenv("SUPCODE_LLM_MODEL")
-	os.Setenv("SUPCODE_LLM_MODEL", "env-value")
-	defer os.Setenv("SUPCODE_LLM_MODEL", oldModel)
+	require.NoError(t, os.Setenv("SUPCODE_LLM_MODEL", "env-value"))
+	defer func() { _ = os.Setenv("SUPCODE_LLM_MODEL", oldModel) }()
 
 	if err := m.Load(); err != nil {
 		t.Fatalf("Load() failed: %v", err)
@@ -107,12 +109,13 @@ func TestPriorityChain(t *testing.T) {
 	}
 }
 
-func TestMissingAPIKey(t *testing.T) {
+func TestLoadWithoutAPIKey(t *testing.T) {
+	t.Setenv("SUPCODE_LLM_API_KEY", "")
 	m := NewManager()
-	if err := m.Load(); err == nil {
-		t.Fatal("expected error when API key is missing, got nil")
-	} else {
-		t.Logf("got expected error: %v", err)
+	// API key validation is intentionally deferred to the Agent layer so that
+	// offline subcommands (config/skill) can load configuration without a key.
+	if err := m.Load(); err != nil {
+		t.Fatalf("Load() should succeed without an API key, got: %v", err)
 	}
 }
 
@@ -124,21 +127,21 @@ func TestCompileTimeInterface(t *testing.T) {
 
 func TestSaveAndLoad(t *testing.T) {
 	m := NewManager()
-	m.Set(ConfigKeyLLMAPIKey, "test-key")
+	require.NoError(t, m.Set(ConfigKeyLLMAPIKey, "test-key"))
 
 	tmpHome := t.TempDir()
 	oldHome := os.Getenv("HOME")
 	oldProfile := os.Getenv("USERPROFILE")
-	os.Setenv("HOME", tmpHome)
-	os.Setenv("USERPROFILE", tmpHome)
-	defer os.Setenv("HOME", oldHome)
-	defer os.Setenv("USERPROFILE", oldProfile)
+	require.NoError(t, os.Setenv("HOME", tmpHome))
+	require.NoError(t, os.Setenv("USERPROFILE", tmpHome))
+	defer func() { _ = os.Setenv("HOME", oldHome) }()
+	defer func() { _ = os.Setenv("USERPROFILE", oldProfile) }()
 
 	if err := m.Load(); err != nil {
 		t.Fatalf("Load() failed: %v", err)
 	}
 
-	m.Set(ConfigKeyLLMModel, "saved-model")
+	require.NoError(t, m.Set(ConfigKeyLLMModel, "saved-model"))
 	if err := m.Save(); err != nil {
 		t.Fatalf("Save() failed: %v", err)
 	}
@@ -154,7 +157,7 @@ func TestSaveAndLoad(t *testing.T) {
 	}
 
 	m2 := NewManager()
-	m2.Set(ConfigKeyLLMAPIKey, "test-key")
+	require.NoError(t, m2.Set(ConfigKeyLLMAPIKey, "test-key"))
 	m2.v.AddConfigPath(tmpHome + string(filepath.Separator) + ".supcode")
 	m2.v.SetConfigName("config")
 	m2.v.SetConfigType("yaml")
@@ -176,7 +179,7 @@ func TestConfigKeyDefaultFunc(t *testing.T) {
 		t.Errorf("ConfigKeyDefault(%q) = %v, want %q", ConfigKeyLLMProvider, v, "openai")
 	}
 
-	v, ok = ConfigKeyDefault("nonexistent.key")
+	_, ok = ConfigKeyDefault("nonexistent.key")
 	if ok {
 		t.Errorf("ConfigKeyDefault(%q) should return false for unknown keys", "nonexistent.key")
 	}
@@ -198,7 +201,7 @@ func TestProjectConfigDir(t *testing.T) {
 	if err := os.MkdirAll(supcodeDir, 0755); err != nil {
 		t.Fatal(err)
 	}
-	defer os.RemoveAll(supcodeDir)
+	defer func() { _ = os.RemoveAll(supcodeDir) }()
 
 	dir := projectConfigDir()
 	if dir != supcodeDir {
@@ -208,8 +211,8 @@ func TestProjectConfigDir(t *testing.T) {
 
 func TestAllSettings(t *testing.T) {
 	m := NewManager()
-	m.Set(ConfigKeyLLMAPIKey, "test-key")
-	m.Set("flat_key", "flat_value")
+	require.NoError(t, m.Set(ConfigKeyLLMAPIKey, "test-key"))
+	require.NoError(t, m.Set("flat_key", "flat_value"))
 	if err := m.Load(); err != nil {
 		t.Fatalf("Load() failed: %v", err)
 	}

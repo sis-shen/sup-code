@@ -5,20 +5,21 @@ import (
 	"strings"
 
 	"github.com/charmbracelet/lipgloss"
+
 	"github.com/supcode/supcode/pkg"
 )
 
 var (
-	planTitleStyle = lipgloss.NewStyle().Bold(true).Foreground(lipgloss.Color("39")).PaddingBottom(1)
-	stepDoneStyle  = lipgloss.NewStyle().Foreground(lipgloss.Color("83"))
-	stepWaitStyle  = lipgloss.NewStyle().Foreground(lipgloss.Color("244"))
+	planTitleStyle  = lipgloss.NewStyle().Bold(true).Foreground(lipgloss.Color("39")).PaddingBottom(1)
+	stepDoneStyle   = lipgloss.NewStyle().Foreground(lipgloss.Color("83"))
+	stepWaitStyle   = lipgloss.NewStyle().Foreground(lipgloss.Color("244"))
 	stepActiveStyle = lipgloss.NewStyle().Bold(true).Foreground(lipgloss.Color("214"))
-	planFrameStyle = lipgloss.NewStyle().Border(lipgloss.RoundedBorder()).Padding(1, 2)
+	planFrameStyle  = lipgloss.NewStyle().Border(lipgloss.RoundedBorder()).Padding(1, 2)
 )
 
 type PlanView struct {
-	Plan      *pkg.Plan
-	Visible   bool
+	Plan    *pkg.Plan
+	Visible bool
 }
 
 func NewPlanView(plan *pkg.Plan) *PlanView {

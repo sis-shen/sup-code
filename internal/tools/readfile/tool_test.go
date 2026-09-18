@@ -1,4 +1,4 @@
-﻿package readfile
+package readfile
 
 import (
 	"context"
@@ -45,14 +45,14 @@ func TestTool_ReadFile_LineRange(t *testing.T) {
 	require.NoError(t, err)
 	assert.True(t, result.Success)
 	var data map[string]string
-	json.Unmarshal(result.Data, &data)
+	require.NoError(t, json.Unmarshal(result.Data, &data))
 	assert.Equal(t, "b\nc\nd", data["content"])
 
 	params, _ = json.Marshal(map[string]any{"path": filePath, "start_line": 8})
 	result, err = tool.Execute(context.Background(), params)
 	require.NoError(t, err)
 	assert.True(t, result.Success)
-	json.Unmarshal(result.Data, &data)
+	require.NoError(t, json.Unmarshal(result.Data, &data))
 	assert.Equal(t, "h\ni\nj\n", data["content"])
 }
 
@@ -113,7 +113,7 @@ func TestTool_ReadFile_EmptyFile(t *testing.T) {
 	require.NoError(t, err)
 	assert.True(t, result.Success)
 	var data map[string]string
-	json.Unmarshal(result.Data, &data)
+	require.NoError(t, json.Unmarshal(result.Data, &data))
 	assert.Equal(t, "", data["content"])
 }
 
@@ -139,7 +139,6 @@ func TestTool_ReadFile_JSONSchemaRequiredFields(t *testing.T) {
 	assert.Contains(t, required, "path")
 }
 
-
 // ─── task2 boundary: binary file handling ────────────────────────
 
 func TestTool_ReadFile_BinaryWithNullBytes(t *testing.T) {
@@ -156,7 +155,7 @@ func TestTool_ReadFile_BinaryWithNullBytes(t *testing.T) {
 
 	// Content should be valid (raw bytes, not line-split)
 	var data map[string]string
-	json.Unmarshal(result.Data, &data)
+	require.NoError(t, json.Unmarshal(result.Data, &data))
 	content, ok := data["content"]
 	assert.True(t, ok)
 	assert.Greater(t, len(content), 0, "binary file should return content")
@@ -175,7 +174,7 @@ func TestTool_ReadFile_EmptyFileReturnsSize(t *testing.T) {
 	assert.True(t, result.Success)
 
 	var data map[string]string
-	json.Unmarshal(result.Data, &data)
+	require.NoError(t, json.Unmarshal(result.Data, &data))
 	content, ok := data["content"]
 	assert.True(t, ok)
 	assert.Equal(t, "", content, "empty file should return empty content")
@@ -200,7 +199,7 @@ func TestTool_ReadFile_LargeFileTruncation(t *testing.T) {
 
 	// Content is a string of the full file (os.ReadFile returns all bytes)
 	var output map[string]string
-	json.Unmarshal(result.Data, &output)
+	require.NoError(t, json.Unmarshal(result.Data, &output))
 	content, ok := output["content"]
 	assert.True(t, ok)
 	assert.Equal(t, size, len(content), "large file content length matches full size (no default truncation, but JSON handles it)")

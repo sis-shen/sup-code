@@ -54,9 +54,9 @@ func TestTool_Bash_Basic(t *testing.T) {
 	assert.True(t, result.Success)
 
 	var output map[string]any
-	json.Unmarshal(result.Data, &output)
-		stdout, _ := output["stdout"].(string)
-		assert.Equal(t, "hello", strings.TrimSpace(stdout))
+	require.NoError(t, json.Unmarshal(result.Data, &output))
+	stdout, _ := output["stdout"].(string)
+	assert.Equal(t, "hello", strings.TrimSpace(stdout))
 }
 
 func TestTool_Bash_WithWorkDir(t *testing.T) {
@@ -85,7 +85,7 @@ func TestTool_Bash_Timeout(t *testing.T) {
 	assert.False(t, result.Success)
 
 	var output map[string]any
-	json.Unmarshal(result.Data, &output)
+	require.NoError(t, json.Unmarshal(result.Data, &output))
 	exitCode, _ := output["exit_code"].(float64)
 	assert.NotEqual(t, float64(0), exitCode)
 }
@@ -134,7 +134,7 @@ func TestTool_Bash_ExitCode(t *testing.T) {
 	assert.False(t, result.Success)
 
 	var output map[string]any
-	json.Unmarshal(result.Data, &output)
+	require.NoError(t, json.Unmarshal(result.Data, &output))
 	assert.Equal(t, float64(42), output["exit_code"])
 }
 
@@ -148,7 +148,7 @@ func TestTool_Bash_StderrCapture(t *testing.T) {
 	require.NoError(t, err)
 
 	var output map[string]any
-	json.Unmarshal(result.Data, &output)
+	require.NoError(t, json.Unmarshal(result.Data, &output))
 	assert.Equal(t, "stdout\n", output["stdout"])
 	assert.Equal(t, "stderr\n", output["stderr"])
 }
@@ -166,7 +166,7 @@ func TestTool_Bash_OutputTruncation(t *testing.T) {
 	require.NoError(t, err)
 
 	var output map[string]any
-	json.Unmarshal(result.Data, &output)
+	require.NoError(t, json.Unmarshal(result.Data, &output))
 	stdout, _ := output["stdout"].(string)
 	assert.LessOrEqual(t, len(stdout), maxOutputSize)
 }

@@ -9,6 +9,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/stretchr/testify/require"
+
 	"github.com/supcode/supcode/internal/config"
 	"github.com/supcode/supcode/internal/hooks/builtin"
 	"github.com/supcode/supcode/internal/tools"
@@ -24,10 +26,10 @@ func testConfig(t *testing.T) *config.Manager {
 		t.Fatalf("config Load(): %v", err)
 	}
 	// Set 优先于用户配置文件/环境变量
-	m.Set(config.ConfigKeyLLMProvider, "openai")
-	m.Set(config.ConfigKeyLLMAPIKey, "sk-test")
-	m.Set(config.ConfigKeyLLMModel, "gpt-4o")
-	m.Set(config.ConfigKeyLLMMaxTokens, 4096)
+	require.NoError(t, m.Set(config.ConfigKeyLLMProvider, "openai"))
+	require.NoError(t, m.Set(config.ConfigKeyLLMAPIKey, "sk-test"))
+	require.NoError(t, m.Set(config.ConfigKeyLLMModel, "gpt-4o"))
+	require.NoError(t, m.Set(config.ConfigKeyLLMMaxTokens, 4096))
 	return m
 }
 
@@ -50,9 +52,9 @@ func TestBuildAgent_NoMCPConfig_Unaffected(t *testing.T) {
 
 func TestBuildAgent_MCP_BadServer_GracefulDegradation(t *testing.T) {
 	m := testConfig(t)
-	m.Set(config.ConfigKeyMCPServers, []map[string]any{
+	require.NoError(t, m.Set(config.ConfigKeyMCPServers, []map[string]any{
 		{"name": "bad", "transport": "stdio", "command": "nonexistent-binary-xyz"},
-	})
+	}))
 
 	agent, err := BuildAgent(m)
 	if err != nil {
@@ -67,9 +69,9 @@ func TestBuildAgent_MCP_BadServer_GracefulDegradation(t *testing.T) {
 
 func TestBuildAgent_MCP_ClosesOnShutdown(t *testing.T) {
 	m := testConfig(t)
-	m.Set(config.ConfigKeyMCPServers, []map[string]any{
+	require.NoError(t, m.Set(config.ConfigKeyMCPServers, []map[string]any{
 		{"name": "bad", "transport": "stdio", "command": "nonexistent-binary-xyz"},
-	})
+	}))
 
 	agent, err := BuildAgent(m)
 	if err != nil {
@@ -132,7 +134,7 @@ func TestBuildAgent_GitCommitHookDisabledByDefault(t *testing.T) {
 
 func TestBuildAgent_GitCommitHookEnabledViaConfig(t *testing.T) {
 	m := testConfig(t)
-	m.Set(config.ConfigKeyHooksGitCommitEnabled, true)
+	require.NoError(t, m.Set(config.ConfigKeyHooksGitCommitEnabled, true))
 
 	agent, err := BuildAgent(m)
 	if err != nil {
@@ -145,7 +147,7 @@ func TestBuildAgent_GitCommitHookEnabledViaConfig(t *testing.T) {
 
 func TestBuildAgent_AuditHookDisabledViaConfig(t *testing.T) {
 	m := testConfig(t)
-	m.Set(config.ConfigKeyHooksAuditEnabled, false)
+	require.NoError(t, m.Set(config.ConfigKeyHooksAuditEnabled, false))
 
 	agent, err := BuildAgent(m)
 	if err != nil {
@@ -165,9 +167,9 @@ type recordingPermEngine struct {
 func (r *recordingPermEngine) Check(ctx context.Context, action pkg.Action) (pkg.Decision, error) {
 	return pkg.DecisionAllow, nil
 }
-func (r *recordingPermEngine) AddRule(rule pkg.PermissionRule) error   { return nil }
-func (r *recordingPermEngine) RemoveRule(ruleID string) error          { return nil }
-func (r *recordingPermEngine) ListRules() []pkg.PermissionRule         { return nil }
+func (r *recordingPermEngine) AddRule(rule pkg.PermissionRule) error { return nil }
+func (r *recordingPermEngine) RemoveRule(ruleID string) error        { return nil }
+func (r *recordingPermEngine) ListRules() []pkg.PermissionRule       { return nil }
 func (r *recordingPermEngine) LogAction(ctx context.Context, action pkg.Action, decision pkg.Decision, result string) error {
 	r.mu.Lock()
 	defer r.mu.Unlock()

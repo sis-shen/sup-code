@@ -9,6 +9,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
 	"github.com/supcode/supcode/pkg"
 )
 
@@ -274,8 +275,8 @@ func TestRegistry_Execute_ContextCancelled_DuringHookChain(t *testing.T) {
 	_, err := r.Execute(ctx, "test_tool", json.RawMessage(`{}`))
 	require.Error(t, err)
 	assert.ErrorIs(t, err, context.Canceled)
-	assert.False(t, hookCalled, "hook chain should abort on cancelled context")
-	assert.False(t, executed, "tool must not run on cancelled context")
+	assert.False(t, hookCalled, "hook chain should abort on canceled context")
+	assert.False(t, executed, "tool must not run on canceled context")
 }
 
 func TestRegistry_Execute_AfterToolHookError_DoesNotAffectResult(t *testing.T) {

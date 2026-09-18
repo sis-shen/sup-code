@@ -5,18 +5,19 @@ import (
 	"sync"
 
 	"github.com/google/uuid"
+
 	"github.com/supcode/supcode/pkg"
 )
 
 // MockMemoryStore implements pkg.MemoryStore for testing.
 type MockMemoryStore struct {
-	mu               sync.Mutex
-	entries          []pkg.MemoryEntry
-	SaveFunc         func(ctx context.Context, entry pkg.MemoryEntry) error
-	SearchFunc       func(ctx context.Context, query string, scope string, limit int) ([]pkg.MemoryEntry, error)
+	mu                sync.Mutex
+	entries           []pkg.MemoryEntry
+	SaveFunc          func(ctx context.Context, entry pkg.MemoryEntry) error
+	SearchFunc        func(ctx context.Context, query string, scope string, limit int) ([]pkg.MemoryEntry, error)
 	GetByCategoryFunc func(ctx context.Context, scope string, category string) ([]pkg.MemoryEntry, error)
-	DeleteFunc       func(ctx context.Context, id string) error
-	CloseFunc        func() error
+	DeleteFunc        func(ctx context.Context, id string) error
+	CloseFunc         func() error
 }
 
 func (m *MockMemoryStore) Save(ctx context.Context, entry pkg.MemoryEntry) error {
@@ -118,6 +119,7 @@ func (m *MockEmbeddingProvider) BatchGenerate(ctx context.Context, texts []strin
 
 var _ pkg.MemoryStore = (*MockMemoryStore)(nil)
 var _ pkg.EmbeddingProvider = (*MockEmbeddingProvider)(nil)
+
 // UpdateEmbedding is required by pkg.MemoryStore interface.
 func (m *MockMemoryStore) UpdateEmbedding(_ context.Context, id string, embedding []float32) error {
 	if m.mu.TryLock() {

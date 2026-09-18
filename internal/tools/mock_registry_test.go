@@ -9,15 +9,15 @@ import (
 
 // MockToolRegistry implements pkg.ToolRegistry for testing.
 type MockToolRegistry struct {
-	RegisterFunc    func(tool pkg.Tool) error
-	UnregisterFunc  func(name string) error
-	GetFunc         func(name string) (pkg.Tool, error)
-	ListFunc        func() []string
-	ListSchemasFunc func() []pkg.ToolSchema
-	ExecuteFunc     func(ctx context.Context, name string, params json.RawMessage) (pkg.ToolResult, error)
-	RegisterHookFunc    func(hook pkg.ToolHook) error
-	UnregisterHookFunc  func(hookName string) error
-	ListHookNamesFunc   func() []string
+	RegisterFunc       func(tool pkg.Tool) error
+	UnregisterFunc     func(name string) error
+	GetFunc            func(name string) (pkg.Tool, error)
+	ListFunc           func() []string
+	ListSchemasFunc    func() []pkg.ToolSchema
+	ExecuteFunc        func(ctx context.Context, name string, params json.RawMessage) (pkg.ToolResult, error)
+	RegisterHookFunc   func(hook pkg.ToolHook) error
+	UnregisterHookFunc func(hookName string) error
+	ListHookNamesFunc  func() []string
 }
 
 func (m *MockToolRegistry) Register(tool pkg.Tool) error {
