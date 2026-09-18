@@ -5,12 +5,14 @@ import (
 	"os"
 	"path/filepath"
 	"sort"
+	"sync"
 )
 
 type SkillLoader struct {
 	BuiltinDir string
 	UserDir    string
 	ProjectDir string
+	mu         sync.RWMutex
 	cache      map[string]*Skill
 }
 
@@ -103,9 +105,12 @@ func (l *SkillLoader) discoverDir(dir string, level int) ([]SkillInfo, error) {
 }
 
 func (l *SkillLoader) Load(name string) (*Skill, error) {
+	l.mu.RLock()
 	if s, ok := l.cache[name]; ok {
+		l.mu.RUnlock()
 		return s, nil
 	}
+	l.mu.RUnlock()
 
 	paths := []struct {
 		dir   string
@@ -153,14 +158,20 @@ func (l *SkillLoader) Load(name string) (*Skill, error) {
 		SourceLevel:  foundLevel,
 	}
 
+	l.mu.Lock()
 	l.cache[name] = skill
+	l.mu.Unlock()
 	return skill, nil
 }
 
 func (l *SkillLoader) InvalidateCache(name string) {
+	l.mu.Lock()
 	delete(l.cache, name)
+	l.mu.Unlock()
 }
 
 func (l *SkillLoader) InvalidateAll() {
+	l.mu.Lock()
 	l.cache = make(map[string]*Skill)
+	l.mu.Unlock()
 }

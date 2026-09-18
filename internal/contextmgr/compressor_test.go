@@ -2,6 +2,7 @@ package contextmgr
 
 import (
 	"context"
+	"sync/atomic"
 	"testing"
 
 	"github.com/supcode/supcode/pkg"
@@ -147,10 +148,10 @@ func TestCompressOldMessages_SingleSegment(t *testing.T) {
 }
 
 func TestCompressOldMessages_MultiSegment(t *testing.T) {
-	callCount := 0
+	var callCount atomic.Int32
 	llm := &MockLLMClient{
 		ChatFunc: func(_ context.Context, _ string, _ []pkg.Message, _ []pkg.ToolSchema) (<-chan pkg.StreamEvent, error) {
-			callCount++
+			callCount.Add(1)
 			// First 2 calls are map phase (10+10 msgs), 3rd is reduce
 			ch := make(chan pkg.StreamEvent, 2)
 			ch <- pkg.StreamEvent{Type: "text_delta", Delta: "segment"}
@@ -168,8 +169,8 @@ func TestCompressOldMessages_MultiSegment(t *testing.T) {
 		t.Fatalf("CompressOldMessages: %v", err)
 	}
 	// Map: 2 calls (2 segments of 10), Reduce: 1 call = 3 total
-	if callCount < 2 {
-		t.Errorf("expected at least 2 LLM calls, got %d", callCount)
+	if got := callCount.Load(); got < 2 {
+		t.Errorf("expected at least 2 LLM calls, got %d", got)
 	}
 	if result == "" {
 		t.Errorf("expected non-empty summary from multi-segment compression")
