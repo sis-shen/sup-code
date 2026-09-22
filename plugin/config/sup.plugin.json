@@ -1,0 +1,9 @@
+{
+  "name": "plugin-config",
+  "version": "2.0.0",
+  "description": "Viper-backed configuration manager exposed as the config service.",
+  "inject": [],
+  "provides": ["config"],
+  "events": [],
+  "entry": "builtin:config"
+}

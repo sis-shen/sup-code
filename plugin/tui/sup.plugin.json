@@ -1,0 +1,9 @@
+{
+  "name": "plugin-tui",
+  "version": "2.0.0",
+  "description": "Bubble Tea interaction layer exposed as the replaceable interaction service.",
+  "inject": ["sessions"],
+  "provides": ["interaction"],
+  "events": [],
+  "entry": "builtin:tui"
+}
