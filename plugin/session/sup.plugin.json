@@ -1,0 +1,9 @@
+{
+  "name": "plugin-session",
+  "version": "2.0.0",
+  "description": "Multi-turn session manager reusing the v1 tui session store.",
+  "inject": [],
+  "provides": ["sessions"],
+  "events": [],
+  "entry": "builtin:session"
+}

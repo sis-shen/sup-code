@@ -7,10 +7,10 @@
 
 | 字段 | 值 |
 |---|---|
-| 状态 | **PASSED（Phase 2 完成；可启动 Phase 3）** |
-| 当前阶段 | Phase 3 — 状态与交互（NOT STARTED） |
+| 状态 | **PHASE_RUNNING（P3 本地门禁通过，CI 待验证）** |
+| 当前阶段 | Phase 3 — 状态与交互（IN PROGRESS） |
 | 已通过阶段 | Phase 0、Phase 1、Phase 2 |
-| 当前版本 | v2.0.0-alpha.2 |
+| 当前版本 | v2.0.0-alpha.3（待 tag） |
 | 最近 tag | `v2.0.0-alpha.2` |
 | 阻塞项 | 无 |
 
@@ -21,7 +21,7 @@
 | P0 工程地基/基线冻结 | **PASSED** | 本地 + CI 全绿 + 已发布 | v2.0.0-alpha.0 | `tasks/phase-0/README.md` | `tasks/acceptance/phase-0.md` |
 | P1 Cordis 内核 core | **PASSED** | 本地 + CI 全绿 + 已发布（core 覆盖率 94.0%） | v2.0.0-alpha.1 | `tasks/phase-1/README.md` | `tasks/acceptance/phase-1.md` |
 | P2 叶子插件化 | **PASSED** | 本地 + CI 全绿 + 已发布（8 插件覆盖 ≥82.6%） | v2.0.0-alpha.2 | `tasks/phase-2/README.md` | `tasks/acceptance/phase-2.md` |
-| P3 状态与交互 | NOT STARTED | — | v2.0.0-alpha.3 | `tasks/phase-3/README.md` | `tasks/acceptance/phase-3.md` |
+| P3 状态与交互 | GATE（本地 PASS，CI 待验证） | G0–G7 通过；新增插件覆盖 ≥81.8% | v2.0.0-alpha.3 | `tasks/phase-3/README.md` | `tasks/acceptance/phase-3.md` |
 | P4 心脏迁移（Agent） | NOT STARTED | — | v2.0.0-alpha.4 | `tasks/phase-4/README.md` | `tasks/acceptance/phase-4.md` |
 | P5 双子进程与远程 | NOT STARTED | — | v2.0.0-beta.1 | `tasks/phase-5/README.md` | `tasks/acceptance/phase-5.md` |
 | P6 dsh 生态兼容 | NOT STARTED | — | v2.0.0-beta.2 | `tasks/phase-6/README.md` | `tasks/acceptance/phase-6.md` |
@@ -74,3 +74,4 @@
 | 2026-09-18 | Phase 1 合并与发布 | PR #2 squash 合入 main（`d3a145f`）；tag `v2.0.0-alpha.1`；goreleaser 预发布多平台产物 |
 | 2026-09-18 | Phase 2 执行 | 8 叶子插件迁移（llm/tools/permission/hooks/mcp/skill/memory/worktree）+ 工具流水线事件桥；`pkg` 服务键/事件契约；ADR-0002 |
 | 2026-09-18 | Phase 2 CI 全绿 + 发布 | PR #3 squash 合入 main（`9234ce3`）；tag `v2.0.0-alpha.2`；goreleaser 预发布多平台产物 |
+| 2026-09-18 | Phase 3 执行 | 状态与交互插件：config/session/context/tui/cli/command；`pkg` 命令契约；headless single-shot（mock LLM）；ADR-0003 |

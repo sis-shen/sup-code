@@ -1,0 +1,9 @@
+{
+  "name": "plugin-cli",
+  "version": "2.0.0",
+  "description": "Headless interaction service reading stdin and writing stdout.",
+  "inject": ["sessions", "commands"],
+  "provides": ["interaction"],
+  "events": [],
+  "entry": "plugin/cli"
+}

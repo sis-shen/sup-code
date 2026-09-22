@@ -1,0 +1,9 @@
+{
+  "name": "plugin-command",
+  "version": "2.0.0",
+  "description": "Slash command registry with builtin help and version commands.",
+  "inject": [],
+  "provides": ["commands"],
+  "events": [],
+  "entry": "plugin/command"
+}
